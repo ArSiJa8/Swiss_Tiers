@@ -71,16 +71,22 @@ export default function Home() {
     <div className="min-h-screen pb-12 overflow-x-hidden">
       
       {/* Hero Header Section */}
-      <header className="relative pt-24 pb-12 px-4 md:px-8 text-center overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 blur-[120px] -z-10 rounded-full pointer-events-none"></div>
-        <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-accent/10 blur-[100px] -z-10 rounded-full pointer-events-none"></div>
+      <header className="relative pt-24 pb-12 px-4 md:px-8 text-center overflow-hidden min-h-[400px] flex items-center justify-center">
+        {/* Hero Background Image with Dark Wash */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: 'url("/hero-bg.webp")',
+            filter: 'brightness(0.3) contrast(1.1)'
+          }}
+        />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-background/20 via-background/60 to-background"></div>
         
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="relative z-10"
+            className="relative z-20"
           >
             <div className="flex justify-center mb-6">
               <img 
