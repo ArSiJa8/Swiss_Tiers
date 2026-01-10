@@ -76,13 +76,20 @@ export default function Home() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 blur-[120px] -z-10 rounded-full pointer-events-none"></div>
         <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-accent/10 blur-[100px] -z-10 rounded-full pointer-events-none"></div>
         
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-primary mb-6">
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            className="relative z-10"
+          >
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/logos/main-logo.png" 
+                alt="Swiss Tiers Logo" 
+                className="w-24 h-24 rounded-2xl shadow-2xl border-2 border-primary/20 object-cover"
+              />
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-primary mb-6">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             Live Rankings
           </div>

@@ -15,8 +15,8 @@
   --popover: 224 71% 6%;
   --popover-foreground: 210 40% 98%;
 
-  /* Primary Blue/Purple Gradient Start */
-  --primary: 262 83% 58%;
+  /* Primary Swiss Red */
+  --primary: 358 76% 47%;
   --primary-foreground: 210 40% 98%;
 
   --secondary: 217 19% 27%;
@@ -25,15 +25,12 @@
   --muted: 217 19% 27%;
   --muted-foreground: 215 20% 65%;
 
-  --accent: 190 90% 50%; /* Cyan accent */
+  --accent: 0 0% 100%; /* White accent */
   --accent-foreground: 222 47% 11%;
-
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 210 40% 98%;
 
   --border: 217 19% 27%;
   --input: 217 19% 27%;
-  --ring: 262 83% 58%;
+  --ring: 358 76% 47%;
 
   --radius: 0.75rem;
 
@@ -63,7 +60,7 @@
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-400 to-accent;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-red-400 to-white;
   }
 
   .rank-badge {
