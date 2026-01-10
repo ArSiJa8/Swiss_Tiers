@@ -1,37 +1,35 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { type Player } from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getLeaderboard(): Promise<Player[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private cache: Player[] | null = null;
+  private lastFetch: number = 0;
+  private CACHE_TTL = 60 * 1000; // 1 minute cache for responsiveness
 
-  constructor() {
-    this.users = new Map();
-  }
+  async getLeaderboard(): Promise<Player[]> {
+    const now = Date.now();
+    if (this.cache && (now - this.lastFetch < this.CACHE_TTL)) {
+      return this.cache;
+    }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    try {
+      console.log("Fetching leaderboard from external API...");
+      const response = await fetch("http://134.255.227.145:25637/api/leaderboard");
+      if (!response.ok) {
+        throw new Error(`External API error: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      this.cache = data as Player[];
+      this.lastFetch = now;
+      return this.cache!;
+    } catch (error) {
+      console.error("Failed to fetch leaderboard:", error);
+      // Return stale cache if available, otherwise empty array
+      return this.cache || [];
+    }
   }
 }
 

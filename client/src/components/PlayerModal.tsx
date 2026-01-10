@@ -1,0 +1,122 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { type Player } from "@shared/routes";
+import { motion } from "framer-motion";
+import { Trophy, Swords, Zap, Crown } from "lucide-react";
+
+interface PlayerModalProps {
+  player: Player | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
+  if (!player) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+          
+          {/* Left Column: Avatar & Basic Info */}
+          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-8 flex flex-col items-center justify-center border-r border-white/5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+            
+            {/* Rank badge decoration */}
+            <div className="absolute top-4 left-4 bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+              <Crown className="w-3 h-3" />
+              TOP PLAYER
+            </div>
+
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="relative z-10 w-full aspect-[3/4] flex items-center justify-center"
+            >
+              {/* Bust Render */}
+              <img 
+                src={`https://mineskin.eu/armor/bust/${player.ingameName}/150.png`}
+                alt={player.ingameName}
+                className="w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform hover:scale-105 transition-transform duration-500"
+              />
+            </motion.div>
+
+            <div className="mt-6 text-center z-10">
+              <h2 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+                {player.ingameName}
+              </h2>
+              {player.discordName && (
+                <p className="text-muted-foreground font-mono text-sm mt-1 bg-black/30 px-3 py-1 rounded-full inline-block border border-white/5">
+                  @{player.discordName}
+                </p>
+              )}
+            </div>
+            
+            <div className="mt-8 w-full bg-white/5 rounded-xl p-4 border border-white/5 backdrop-blur-sm">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Points</p>
+                <p className="text-4xl font-display font-black text-primary mt-1">{player.totalPoints}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Detailed Stats */}
+          <div className="md:col-span-2 p-8 bg-background/50">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-display uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6">
+                <Swords className="w-5 h-5 text-accent" />
+                Performance Statistics
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Object.entries(player.gamemodes || {}).map(([mode, stats], index) => {
+                if (!stats) return null;
+                
+                return (
+                  <motion.div 
+                    key={mode}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                    className="group bg-card border border-white/5 hover:border-primary/50 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Zap className="w-12 h-12" />
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-4">
+                      {/* Fallback image logic handled by onerror usually, simplistic here */}
+                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center overflow-hidden border border-white/10">
+                         <img 
+                          src={`/${mode}.png`} 
+                          alt={mode}
+                          onError={(e) => {
+                            e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='5' ry='5'%3E%3C/rect%3E%3Cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'%3E%3C/path%3E%3Cline x1='17.5' y1='6.5' x2='17.51' y2='6.5'%3E%3C/line%3E%3C/svg%3E";
+                          }}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <h3 className="font-bold text-lg">{mode}</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-black/20 rounded-lg p-3 border border-white/5">
+                        <p className="text-xs text-muted-foreground uppercase">Rank</p>
+                        <p className="text-xl font-mono font-bold text-accent">{stats.rank}</p>
+                      </div>
+                      <div className="bg-black/20 rounded-lg p-3 border border-white/5">
+                        <p className="text-xs text-muted-foreground uppercase">Points</p>
+                        <p className="text-xl font-mono font-bold text-white">{stats.points}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
