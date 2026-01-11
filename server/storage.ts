@@ -17,7 +17,7 @@ export class MemStorage implements IStorage {
 
     try {
       console.log("Fetching leaderboard from external API...");
-      const response = await fetch("http://134.255.227.145:25637/api/leaderboard");
+      const response = await fetch("https://swiss-tiers-bot-production.up.railway.app/api/leaderboard");
       if (!response.ok) {
         throw new Error(`External API error: ${response.status} ${response.statusText}`);
       }
