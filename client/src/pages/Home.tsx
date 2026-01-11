@@ -134,11 +134,11 @@ export default function Home() {
           
           {/* Gamemode Slider */}
           <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">
               <button
                 onClick={() => setActiveMode(null)}
                 className={clsx(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap",
+                  "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap",
                   activeMode === null 
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105" 
                     : "bg-card hover:bg-white/10 text-muted-foreground hover:text-white border border-transparent hover:border-white/10"
@@ -148,14 +148,14 @@ export default function Home() {
                 OVERALL
               </button>
               
-              <div className="w-px h-8 bg-white/10 mx-2"></div>
+              <div className="hidden lg:block w-px h-8 bg-white/10 mx-1"></div>
 
               {gamemodes.map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setActiveMode(mode)}
                   className={clsx(
-                    "flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap border",
+                    "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition-all duration-300 whitespace-nowrap border",
                     activeMode === mode 
                       ? "bg-white text-black border-white shadow-lg scale-105" 
                       : "bg-card text-muted-foreground border-white/5 hover:border-white/20 hover:text-white"
@@ -189,7 +189,10 @@ export default function Home() {
         </div>
 
         {/* Leaderboard Table */}
-        <div className="bg-card/30 rounded-3xl border border-white/5 p-2 md:p-6 backdrop-blur-sm min-h-[500px]">
+        <div className={clsx(
+          "rounded-3xl border border-white/5 p-4 md:p-6 backdrop-blur-sm min-h-[500px]",
+          activeMode ? "bg-transparent border-none p-0" : "bg-card/30"
+        )}>
           <LeaderboardTable 
             data={filteredData} 
             activeMode={activeMode} 

@@ -27,6 +27,66 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
     return "bg-card border-border hover:border-primary/50 hover:bg-white/5";
   };
 
+  if (activeMode) {
+    // Tier-based Grid Layout for specific gamemodes
+    const tiers = ["Tier 1", "Tier 2", "Tier 3", "Tier 4", "Tier 5"];
+    
+    // Group players by tier
+    const tieredPlayers = tiers.map(tier => ({
+      name: tier,
+      players: data.filter(p => p.gamemodes?.[activeMode]?.rank === tier)
+    }));
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {tieredPlayers.map((tier, tierIdx) => (
+          <div key={tier.name} className="flex flex-col gap-3">
+            <div className={clsx(
+              "flex items-center justify-center py-3 rounded-xl border font-black uppercase tracking-widest text-sm shadow-lg",
+              tierIdx === 0 ? "bg-yellow-500/20 border-yellow-500/40 text-yellow-400 shadow-yellow-500/10" :
+              tierIdx === 1 ? "bg-slate-400/20 border-slate-400/40 text-slate-300 shadow-slate-400/10" :
+              tierIdx === 2 ? "bg-amber-700/20 border-amber-700/40 text-amber-600 shadow-amber-700/10" :
+              "bg-card border-white/5 text-muted-foreground"
+            )}>
+              {tierIdx < 3 && <Trophy className="w-4 h-4 mr-2" />}
+              {tier.name}
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <AnimatePresence mode="popLayout">
+                {tier.players.map((player, pIdx) => (
+                  <motion.div
+                    key={player.ingameName}
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: pIdx * 0.05 }}
+                    onClick={() => onPlayerClick(player)}
+                    className="flex items-center gap-3 p-2 rounded-lg bg-card/50 border border-white/5 hover:border-primary/40 hover:bg-white/5 cursor-pointer transition-all group"
+                  >
+                    <img
+                      src={`https://mineskin.eu/helm/${player.ingameName}/32.png`}
+                      alt={player.ingameName}
+                      className="w-6 h-6 rounded-md object-contain border border-white/10"
+                    />
+                    <span className="text-sm font-bold truncate text-foreground group-hover:text-white transition-colors">
+                      {player.ingameName}
+                    </span>
+                  </motion.div>
+                ))}
+                {tier.players.length === 0 && (
+                  <div className="text-center py-4 text-xs text-muted-foreground italic bg-white/5 rounded-lg border border-dashed border-white/5">
+                    No players
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3 pb-20">
       {/* Table Header */}
