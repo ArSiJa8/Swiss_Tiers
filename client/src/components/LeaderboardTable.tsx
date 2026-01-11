@@ -1,15 +1,25 @@
 import { type Player } from "@shared/routes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Medal, Crown } from "lucide-react";
+import { Trophy, Medal, Crown, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import clsx from "clsx";
 
 interface LeaderboardTableProps {
   data: Player[];
   activeMode: string | null;
   onPlayerClick: (player: Player) => void;
+  compareMode?: boolean;
+  selectedPlayers?: string[];
+  onSelectForCompare?: (playerName: string) => void;
 }
 
-export function LeaderboardTable({ data, activeMode, onPlayerClick }: LeaderboardTableProps) {
+export function LeaderboardTable({ 
+  data, 
+  activeMode, 
+  onPlayerClick, 
+  compareMode = false,
+  selectedPlayers = [],
+  onSelectForCompare
+}: LeaderboardTableProps) {
   
   const getRankIcon = (index: number, player: Player) => {
     switch (index) {
@@ -18,6 +28,12 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
       case 2: return <Medal className="w-6 h-6 text-amber-700 fill-amber-700/20" />;
       default: return <span className="text-lg font-mono text-muted-foreground font-bold">#{index + 1}</span>;
     }
+  };
+
+  const getTrendIcon = (trend: number | undefined) => {
+    if (trend === undefined || trend === 0) return <Minus className="w-4 h-4 text-muted-foreground/40" />;
+    if (trend > 0) return <ArrowUp className="w-4 h-4 text-green-500" />;
+    return <ArrowDown className="w-4 h-4 text-red-500" />;
   };
 
   const getRowStyle = (index: number) => {
@@ -123,13 +139,17 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
             onClick={() => onPlayerClick(player)}
             className={clsx(
               "group relative grid grid-cols-12 gap-2 md:gap-4 items-center px-3 md:px-6 py-4 rounded-xl border cursor-pointer transition-all duration-300 shadow-lg shadow-black/20",
-              getRowStyle(index)
+              getRowStyle(index),
+              selectedPlayers.includes(player.ingameName) && "ring-2 ring-primary border-primary bg-primary/10"
             )}
           >
             {/* Rank Column */}
-            <div className="col-span-1 flex justify-center items-center">
+            <div className="col-span-1 flex flex-col justify-center items-center gap-1">
               <div className="transform group-hover:scale-110 transition-transform duration-300">
                 {getRankIcon(index, player)}
+              </div>
+              <div className="flex items-center gap-0.5 opacity-60">
+                {getTrendIcon(player.rankTrend)}
               </div>
             </div>
 

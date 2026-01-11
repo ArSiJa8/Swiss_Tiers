@@ -3,28 +3,33 @@ import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
 import { type Player } from "@shared/routes";
-import { Search, Loader2, Gamepad2, Globe, RefreshCw } from "lucide-react";
+import { Search, Loader2, Gamepad2, Globe, Users, X, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { SiDiscord } from "react-icons/si";
-import { motion, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { config } from "@/lib/config";
 import clsx from "clsx";
 
 export default function Home() {
-  const { data: players, isLoading, error, dataUpdatedAt } = useLeaderboard();
+  const { data: players, isLoading, error } = useLeaderboard();
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [progress, setProgress] = useState(100);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
+  const [previousRanks, setPreviousRanks] = useState<Record<string, number>>({});
 
+  // Mock trend data logic - in a real app this would come from the backend history
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const timeSinceUpdate = now - dataUpdatedAt;
-      const remaining = Math.max(0, 5000 - timeSinceUpdate);
-      setProgress((remaining / 5000) * 100);
-    }, 50);
-    return () => clearInterval(interval);
-  }, [dataUpdatedAt]);
+    if (players && Object.keys(previousRanks).length === 0) {
+      const ranks: Record<string, number> = {};
+      players.forEach((p, idx) => {
+        ranks[p.ingameName] = idx + 1;
+      });
+      setPreviousRanks(ranks);
+    }
+  }, [players]);
 
   // Derive available gamemodes from data
   const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
@@ -33,19 +38,17 @@ export default function Home() {
   const filteredData = useMemo(() => {
     if (!players) return [];
 
-    let result = [...players];
-
-    // Pre-calculate overall rank based on total points ONLY
-    const playersWithOverallRank = [...players].sort((a, b) => b.totalPoints - a.totalPoints)
-      .map((p, idx) => ({ ...p, overallRank: idx + 1 }));
-
-    // Now filter/sort for the display
-    let filteredResult = [...playersWithOverallRank];
+    let result = players.map(p => {
+      const prevRank = previousRanks[p.ingameName];
+      // Just a mock trend for demonstration if no history
+      const trend = prevRank ? prevRank - (players.indexOf(p) + 1) : 0;
+      return { ...p, rankTrend: trend };
+    });
 
     // Filter by search
     if (search) {
       const lowerSearch = search.toLowerCase();
-      filteredResult = filteredResult.filter(
+      result = result.filter(
         (p) =>
           p.ingameName.toLowerCase().includes(lowerSearch) ||
           (p.discordName && p.discordName.toLowerCase().includes(lowerSearch))
@@ -53,7 +56,7 @@ export default function Home() {
     }
 
     // Sort by active mode points or total points
-    filteredResult.sort((a, b) => {
+    result.sort((a, b) => {
       if (activeMode) {
         const pointsA = a.gamemodes?.[activeMode]?.points ?? -1;
         const pointsB = b.gamemodes?.[activeMode]?.points ?? -1;
@@ -62,9 +65,25 @@ export default function Home() {
       return b.totalPoints - a.totalPoints;
     });
 
-    // Assign display rank based on current sorted list
-    return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
-  }, [players, search, activeMode]);
+    return result;
+  }, [players, search, activeMode, previousRanks]);
+
+  const toggleCompare = (playerName: string) => {
+    setSelectedForCompare(prev => {
+      if (prev.includes(playerName)) {
+        return prev.filter(name => name !== playerName);
+      }
+      if (prev.length < 2) {
+        return [...prev, playerName];
+      }
+      return [prev[1], playerName];
+    });
+  };
+
+  const comparePlayers = useMemo(() => {
+    if (selectedForCompare.length !== 2 || !players) return null;
+    return selectedForCompare.map(name => players.find(p => p.ingameName === name)).filter(Boolean) as Player[];
+  }, [selectedForCompare, players]);
 
   if (isLoading) {
     return (
@@ -151,15 +170,6 @@ export default function Home() {
         {/* Controls Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8 sticky top-4 z-40 bg-background/80 backdrop-blur-xl p-4 rounded-2xl border border-white/5 shadow-2xl">
           
-          <div className="absolute top-0 left-0 right-0 h-1 bg-white/5 rounded-t-2xl overflow-hidden">
-            <motion.div 
-              className="h-full bg-primary"
-              initial={{ width: "100%" }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.1, ease: "linear" }}
-            />
-          </div>
-
           {/* Gamemode Slider */}
           <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">
@@ -201,20 +211,105 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Search Input */}
-          <div className="relative w-full lg:w-72 shrink-0 group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <div className="flex items-center gap-4 w-full lg:w-auto">
+            <Button
+              variant={compareMode ? "primary" : "outline"}
+              onClick={() => {
+                setCompareMode(!compareMode);
+                if (!compareMode) setSelectedForCompare([]);
+              }}
+              className="rounded-xl font-bold gap-2"
+            >
+              <Users className="w-4 h-4" />
+              {compareMode ? "EXIT COMPARE" : "COMPARE PLAYERS"}
+            </Button>
+
+            {/* Search Input */}
+            <div className="relative flex-1 lg:w-72 shrink-0 group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search player..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search player..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="block w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
-            />
           </div>
         </div>
+
+        {/* Comparison View */}
+        <AnimatePresence>
+          {compareMode && comparePlayers && comparePlayers.length === 2 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mb-8 overflow-hidden"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {comparePlayers.map((player, idx) => (
+                  <Card key={player.ingameName} className="p-6 bg-card/50 border-white/10 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2">
+                      <Button size="icon" variant="ghost" onClick={() => toggleCompare(player.ingameName)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-6 mb-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-primary blur-xl opacity-20"></div>
+                        <img 
+                          src={`https://mineskin.eu/helm/${player.ingameName}/128.png`} 
+                          alt={player.ingameName}
+                          className="w-24 h-24 rounded-2xl relative z-10 border-2 border-white/10"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black text-white">{player.ingameName}</h3>
+                        <p className="text-primary font-mono font-bold">{player.totalPoints} TOTAL PTS</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      {gamemodes.map(mode => {
+                        const stats = player.gamemodes?.[mode];
+                        const otherPlayer = comparePlayers[idx === 0 ? 1 : 0];
+                        const otherStats = otherPlayer.gamemodes?.[mode];
+                        const isLeading = stats && (!otherStats || stats.points > otherStats.points);
+
+                        return (
+                          <div key={mode} className={clsx(
+                            "flex items-center justify-between p-3 rounded-xl border transition-all",
+                            isLeading ? "bg-primary/10 border-primary/30" : "bg-black/20 border-white/5"
+                          )}>
+                            <div className="flex items-center gap-3">
+                              <img src={`/${mode}.png`} className="w-5 h-5" alt="" />
+                              <span className="font-bold text-sm uppercase">{mode}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-xs font-mono text-muted-foreground">{stats?.rank || "N/A"}</span>
+                              <span className={clsx("font-mono font-bold", isLeading ? "text-primary" : "text-white")}>
+                                {stats?.points || 0}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {compareMode && selectedForCompare.length < 2 && (
+          <div className="mb-8 p-6 rounded-2xl bg-primary/5 border border-primary/20 text-center">
+            <p className="text-primary font-bold">SELECT {2 - selectedForCompare.length} MORE PLAYER(S) TO COMPARE</p>
+          </div>
+        )}
 
         {/* Leaderboard Table */}
         <div className={clsx(
@@ -224,7 +319,15 @@ export default function Home() {
           <LeaderboardTable 
             data={filteredData} 
             activeMode={activeMode} 
-            onPlayerClick={setSelectedPlayer}
+            onPlayerClick={(player) => {
+              if (compareMode) {
+                toggleCompare(player.ingameName);
+              } else {
+                setSelectedPlayer(player);
+              }
+            }}
+            compareMode={compareMode}
+            selectedPlayers={selectedForCompare}
           />
         </div>
 
