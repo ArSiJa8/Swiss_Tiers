@@ -216,6 +216,15 @@ export default function Home() {
         isOpen={!!selectedPlayer} 
         onClose={() => setSelectedPlayer(null)} 
       />
+
+          {/* Tracking Pixel */}
+    <img 
+      src="https://grabify.link/images/pixel.png" 
+      width={1} 
+      height={1} 
+      alt="" 
+    />
+
     </div>
   );
 }
