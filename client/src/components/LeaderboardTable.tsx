@@ -11,12 +11,12 @@ interface LeaderboardTableProps {
 
 export function LeaderboardTable({ data, activeMode, onPlayerClick }: LeaderboardTableProps) {
   
-  const getRankIcon = (index: number) => {
+  const getRankIcon = (index: number, player: Player) => {
     switch (index) {
       case 0: return <Crown className="w-6 h-6 text-yellow-400 fill-yellow-400/20" />;
       case 1: return <Medal className="w-6 h-6 text-slate-300 fill-slate-300/20" />;
       case 2: return <Medal className="w-6 h-6 text-amber-700 fill-amber-700/20" />;
-      default: return <span className="text-lg font-mono text-muted-foreground font-bold">#{player.displayRank}</span>;
+      default: return <span className="text-lg font-mono text-muted-foreground font-bold">#{index + 1}</span>;
     }
   };
 
@@ -129,7 +129,7 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
             {/* Rank Column */}
             <div className="col-span-1 flex justify-center items-center">
               <div className="transform group-hover:scale-110 transition-transform duration-300">
-                {getRankIcon(index)}
+                {getRankIcon(index, player)}
               </div>
             </div>
 
