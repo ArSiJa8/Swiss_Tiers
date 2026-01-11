@@ -2,6 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { type Player } from "@shared/routes";
 import { motion } from "framer-motion";
 import { Trophy, Swords, Zap, Crown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { config } from "@/lib/config";
 
 interface PlayerModalProps {
   player: Player | null;
@@ -11,6 +13,11 @@ interface PlayerModalProps {
 
 export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
   if (!player) return null;
+
+  // Find the highest badge earned
+  const earnedBadges = [...config.badges]
+    .filter(b => player.totalPoints >= b.threshold)
+    .sort((a, b) => b.threshold - a.threshold);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -22,9 +29,37 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
             
             {/* Rank badge decoration */}
-            <div className="absolute top-4 left-4 bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-              <Crown className="w-3 h-3" />
-              TOP PLAYER
+            <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+              <div className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                <Crown className="w-3 h-3" />
+                TOP PLAYER
+              </div>
+              
+              <TooltipProvider>
+                <div className="flex flex-wrap gap-2">
+                  {earnedBadges.map((badge) => (
+                    <Tooltip key={badge.id}>
+                      <TooltipTrigger asChild>
+                        <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 p-1 flex items-center justify-center cursor-help hover:border-primary/50 transition-colors">
+                          <img 
+                            src={badge.icon} 
+                            alt={badge.name} 
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              // Placeholder for missing icon
+                              e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D52B1E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E";
+                            }}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-card border-white/10 text-white">
+                        <p className="font-bold">{badge.name}</p>
+                        <p className="text-xs text-muted-foreground">{badge.threshold} Points Required</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </TooltipProvider>
             </div>
 
             <motion.div 
