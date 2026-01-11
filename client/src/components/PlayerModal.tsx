@@ -52,10 +52,14 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
               )}
             </div>
             
-            <div className="mt-4 md:mt-8 w-full max-w-[200px] md:max-w-none bg-white/5 rounded-xl p-3 md:p-4 border border-white/5 backdrop-blur-sm">
-              <div className="text-center">
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Points</p>
-                <p className="text-3xl md:text-4xl font-display font-black text-primary mt-0.5 md:mt-1">{player.totalPoints}</p>
+            <div className="mt-4 md:mt-8 w-full max-w-[200px] md:max-w-none grid grid-cols-2 gap-2 bg-white/5 rounded-xl p-3 md:p-4 border border-white/5 backdrop-blur-sm">
+              <div className="text-center border-r border-white/10 pr-2">
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Pts</p>
+                <p className="text-xl md:text-2xl font-display font-black text-white mt-0.5 md:mt-1">{player.totalPoints}</p>
+              </div>
+              <div className="text-center pl-2">
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Overall</p>
+                <p className="text-2xl md:text-3xl font-display font-black text-primary mt-0.5 md:mt-1">#{player.overallRank || '-'}</p>
               </div>
             </div>
           </div>

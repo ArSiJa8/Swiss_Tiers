@@ -24,10 +24,17 @@ export default function Home() {
 
     let result = [...players];
 
+    // Pre-calculate overall rank based on total points ONLY
+    const playersWithOverallRank = [...players].sort((a, b) => b.totalPoints - a.totalPoints)
+      .map((p, idx) => ({ ...p, overallRank: idx + 1 }));
+
+    // Now filter/sort for the display
+    let filteredResult = [...playersWithOverallRank];
+
     // Filter by search
     if (search) {
       const lowerSearch = search.toLowerCase();
-      result = result.filter(
+      filteredResult = filteredResult.filter(
         (p) =>
           p.ingameName.toLowerCase().includes(lowerSearch) ||
           (p.discordName && p.discordName.toLowerCase().includes(lowerSearch))
@@ -35,7 +42,7 @@ export default function Home() {
     }
 
     // Sort by active mode points or total points
-    result.sort((a, b) => {
+    filteredResult.sort((a, b) => {
       if (activeMode) {
         const pointsA = a.gamemodes?.[activeMode]?.points ?? -1;
         const pointsB = b.gamemodes?.[activeMode]?.points ?? -1;
@@ -44,7 +51,8 @@ export default function Home() {
       return b.totalPoints - a.totalPoints;
     });
 
-    return result;
+    // Assign display rank based on current sorted list
+    return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
   }, [players, search, activeMode]);
 
   if (isLoading) {
