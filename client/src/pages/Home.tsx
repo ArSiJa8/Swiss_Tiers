@@ -1,19 +1,30 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
 import { type Player } from "@shared/routes";
-import { Search, Loader2, Gamepad2, Globe } from "lucide-react";
+import { Search, Loader2, Gamepad2, Globe, RefreshCw } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { config } from "@/lib/config";
 import clsx from "clsx";
 
 export default function Home() {
-  const { data: players, isLoading, error } = useLeaderboard();
+  const { data: players, isLoading, error, dataUpdatedAt } = useLeaderboard();
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceUpdate = now - dataUpdatedAt;
+      const remaining = Math.max(0, 5000 - timeSinceUpdate);
+      setProgress((remaining / 5000) * 100);
+    }, 50);
+    return () => clearInterval(interval);
+  }, [dataUpdatedAt]);
 
   // Derive available gamemodes from data
   const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
@@ -140,6 +151,15 @@ export default function Home() {
         {/* Controls Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8 sticky top-4 z-40 bg-background/80 backdrop-blur-xl p-4 rounded-2xl border border-white/5 shadow-2xl">
           
+          <div className="absolute top-0 left-0 right-0 h-1 bg-white/5 rounded-t-2xl overflow-hidden">
+            <motion.div 
+              className="h-full bg-primary"
+              initial={{ width: "100%" }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.1, ease: "linear" }}
+            />
+          </div>
+
           {/* Gamemode Slider */}
           <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">

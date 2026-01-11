@@ -11,7 +11,8 @@ export function useLeaderboard() {
       const data = await res.json();
       return api.leaderboard.list.responses[200].parse(data);
     },
-    staleTime: 1000 * 60, // Cache for 1 minute
+    refetchInterval: 5000, // Refetch every 5 seconds
+    staleTime: 2000,
   });
 }
 
