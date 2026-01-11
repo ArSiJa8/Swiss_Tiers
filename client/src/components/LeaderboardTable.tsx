@@ -32,10 +32,19 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
     const tiers = ["Tier 1", "Tier 2", "Tier 3", "Tier 4", "Tier 5"];
     
     // Group players by tier
-    const tieredPlayers = tiers.map(tier => ({
-      name: tier,
-      players: data.filter(p => p.gamemodes?.[activeMode]?.rank === tier)
-    }));
+    const tieredPlayers = tiers.map((tierName, tierIdx) => {
+      const tierNum = tierIdx + 1;
+      const rankLT = `LT${tierNum}`;
+      const rankHT = `HT${tierNum}`;
+      
+      return {
+        name: tierName,
+        players: data.filter(p => {
+          const rank = p.gamemodes?.[activeMode]?.rank;
+          return rank === rankLT || rank === rankHT;
+        })
+      };
+    });
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -69,9 +78,14 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
                       alt={player.ingameName}
                       className="w-6 h-6 rounded-md object-contain border border-white/10"
                     />
-                    <span className="text-sm font-bold truncate text-foreground group-hover:text-white transition-colors">
-                      {player.ingameName}
-                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold truncate text-white group-hover:text-primary transition-colors leading-tight">
+                        {player.ingameName}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-accent leading-none">
+                        {player.gamemodes?.[activeMode]?.rank}
+                      </span>
+                    </div>
                   </motion.div>
                 ))}
                 {tier.players.length === 0 && (
