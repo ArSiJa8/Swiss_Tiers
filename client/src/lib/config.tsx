@@ -1,6 +1,6 @@
 export const config = {
   socials: {
-    discord: "https://xtube.chat/invite.php?id=9ASBZX",
+    discord: "https://discord.gg/Kg7A42bPKz",
   },
   badges: [
     { id: "combat-grandmaster", name: "Combat Grandmaster", threshold: 60, icon: "/badges/grandmaster.png" },
