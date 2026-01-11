@@ -14,11 +14,11 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50">
-        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+      <DialogContent className="max-w-4xl w-[95vw] md:w-full bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50 max-h-[90vh] overflow-y-auto md:overflow-hidden">
+        <div className="flex flex-col md:grid md:grid-cols-3 h-full">
           
           {/* Left Column: Avatar & Basic Info */}
-          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-8 flex flex-col items-center justify-center border-r border-white/5 relative overflow-hidden">
+          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5 relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
             
             {/* Rank badge decoration */}
@@ -31,7 +31,7 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="relative z-10 w-full aspect-[3/4] flex items-center justify-center"
+              className="relative z-10 w-40 md:w-full aspect-[3/4] flex items-center justify-center"
             >
               {/* Bust Render */}
               <img 
@@ -41,35 +41,35 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
               />
             </motion.div>
 
-            <div className="mt-6 text-center z-10">
-              <h2 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+            <div className="mt-4 md:mt-6 text-center z-10">
+              <h2 className="text-2xl md:text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
                 {player.ingameName}
               </h2>
               {player.discordName && (
-                <p className="text-muted-foreground font-mono text-sm mt-1 bg-black/30 px-3 py-1 rounded-full inline-block border border-white/5">
+                <p className="text-xs md:text-sm text-muted-foreground font-mono mt-1 bg-black/30 px-3 py-0.5 md:py-1 rounded-full inline-block border border-white/5">
                   @{player.discordName}
                 </p>
               )}
             </div>
             
-            <div className="mt-8 w-full bg-white/5 rounded-xl p-4 border border-white/5 backdrop-blur-sm">
+            <div className="mt-4 md:mt-8 w-full max-w-[200px] md:max-w-none bg-white/5 rounded-xl p-3 md:p-4 border border-white/5 backdrop-blur-sm">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Points</p>
-                <p className="text-4xl font-display font-black text-primary mt-1">{player.totalPoints}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Points</p>
+                <p className="text-3xl md:text-4xl font-display font-black text-primary mt-0.5 md:mt-1">{player.totalPoints}</p>
               </div>
             </div>
           </div>
 
           {/* Right Column: Detailed Stats */}
-          <div className="md:col-span-2 p-8 bg-background/50">
+          <div className="md:col-span-2 p-6 md:p-8 bg-background/50">
             <DialogHeader>
-              <DialogTitle className="text-xl font-display uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6">
+              <DialogTitle className="text-lg md:text-xl font-display uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4 md:mb-6">
                 <Swords className="w-5 h-5 text-accent" />
                 Performance Statistics
               </DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {Object.entries(player.gamemodes || {}).map(([mode, stats], index) => {
                 if (!stats) return null;
                 

@@ -32,10 +32,9 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
       {/* Table Header */}
       <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
         <div className="col-span-1 text-center">Rank</div>
-        <div className="col-span-5 md:col-span-4">Player</div>
-        <div className="col-span-3 md:col-span-2 text-center">Points</div>
+        <div className="col-span-7 md:col-span-4">Player</div>
+        <div className="col-span-4 md:col-span-2 text-center">Points</div>
         <div className="hidden md:block md:col-span-5 text-right">Other Ranks</div>
-        <div className="md:hidden col-span-3 text-right">Details</div>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -49,7 +48,7 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
             transition={{ duration: 0.2, delay: index * 0.03 }}
             onClick={() => onPlayerClick(player)}
             className={clsx(
-              "group relative grid grid-cols-12 gap-4 items-center px-6 py-4 rounded-xl border cursor-pointer transition-all duration-300 shadow-lg shadow-black/20",
+              "group relative grid grid-cols-12 gap-2 md:gap-4 items-center px-3 md:px-6 py-4 rounded-xl border cursor-pointer transition-all duration-300 shadow-lg shadow-black/20",
               getRowStyle(index)
             )}
           >
@@ -61,8 +60,8 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
             </div>
 
             {/* Player Info Column */}
-            <div className="col-span-5 md:col-span-4 flex items-center gap-4">
-              <div className="relative w-12 h-12 md:w-14 md:h-14 shrink-0">
+            <div className="col-span-7 md:col-span-4 flex items-center gap-3 md:gap-4">
+              <div className="relative w-10 h-10 md:w-14 md:h-14 shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary to-accent rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                 <img
                   src={`https://mineskin.eu/helm/${player.ingameName}/100.png`}
@@ -73,13 +72,13 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
               </div>
               <div className="flex flex-col min-w-0">
                 <span className={clsx(
-                  "font-display font-bold text-lg truncate",
+                  "font-display font-bold text-base md:text-lg truncate",
                   index < 3 ? "text-white" : "text-foreground"
                 )}>
                   {player.ingameName}
                 </span>
                 {player.discordName && (
-                  <span className="text-xs text-muted-foreground font-mono truncate group-hover:text-primary transition-colors">
+                  <span className="text-[10px] md:text-xs text-muted-foreground font-mono truncate group-hover:text-primary transition-colors">
                     @{player.discordName}
                   </span>
                 )}
@@ -87,15 +86,15 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
             </div>
 
             {/* Points Column */}
-            <div className="col-span-3 md:col-span-2 flex justify-center">
+            <div className="col-span-4 md:col-span-2 flex justify-center">
               <div className="flex flex-col items-center">
                 <span className={clsx(
-                  "font-mono font-black text-2xl tracking-tight",
+                  "font-mono font-black text-xl md:text-2xl tracking-tight",
                   index === 0 ? "text-yellow-400" : "text-white"
                 )}>
                   {activeMode ? (player.gamemodes?.[activeMode]?.points ?? 0) : player.totalPoints}
                 </span>
-                <span className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">PTS</span>
+                <span className="text-[9px] md:text-[10px] uppercase text-muted-foreground font-bold tracking-wider">PTS</span>
               </div>
             </div>
 
@@ -124,13 +123,6 @@ export function LeaderboardTable({ data, activeMode, onPlayerClick }: Leaderboar
                   +{Object.keys(player.gamemodes || {}).length - 4}
                 </span>
               )}
-            </div>
-
-            {/* Mobile Expand Hint */}
-            <div className="md:hidden col-span-3 flex justify-end">
-              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                <Trophy className="w-4 h-4" />
-              </div>
             </div>
 
             {/* Hover Glow Effect */}

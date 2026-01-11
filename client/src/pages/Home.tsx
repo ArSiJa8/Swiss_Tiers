@@ -133,7 +133,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8 sticky top-4 z-40 bg-background/80 backdrop-blur-xl p-4 rounded-2xl border border-white/5 shadow-2xl">
           
           {/* Gamemode Slider */}
-          <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+          <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveMode(null)}
