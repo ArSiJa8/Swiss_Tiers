@@ -3,12 +3,12 @@ import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
 import { type Player } from "@shared/routes";
-import { Search, Loader2, Gamepad2, Globe } from "lucide-react";
+import { Search, Loader2, Gamepad2, Globe, ShieldAlert } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { motion } from "framer-motion";
 import { config } from "@/lib/config";
 import clsx from "clsx";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
@@ -73,6 +73,38 @@ export default function Home() {
     // Assign display rank based on current sorted list
     return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
   }, [players, search, activeMode]);
+
+  const { data: config } = useQuery({
+    queryKey: ["/api/config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config");
+      return res.json();
+    }
+  });
+
+  if (config?.maintenanceMode === "true") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-primary px-4">
+        <div className="bg-card/30 backdrop-blur-xl p-12 rounded-3xl border border-white/5 text-center max-w-lg shadow-2xl">
+          <ShieldAlert className="w-16 h-16 mx-auto mb-6 text-primary animate-pulse" />
+          <h2 className="text-4xl font-display font-black mb-4">WARTUNGSMODUS</h2>
+          <p className="text-muted-foreground text-lg font-light">
+            Wir führen gerade Wartungsarbeiten durch, um dein Erlebnis zu verbessern. 
+            Bitte schau später wieder vorbei!
+          </p>
+          <div className="mt-8 pt-8 border-t border-white/5">
+             <button
+              onClick={handleDiscordClick}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all mx-auto shadow-lg shadow-[#5865F2]/20"
+            >
+              <SiDiscord className="w-5 h-5" />
+              JOIN DISCORD FOR UPDATES
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
