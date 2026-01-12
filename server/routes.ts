@@ -17,5 +17,43 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/analytics/page-view", async (req, res) => {
+    await storage.incrementPageViews();
+    res.sendStatus(200);
+  });
+
+  app.post("/api/analytics/discord-click", async (req, res) => {
+    await storage.incrementDiscordClicks();
+    res.sendStatus(200);
+  });
+
+  app.get("/api/admin/analytics", async (req, res) => {
+    const password = req.query.password;
+    if (password !== "Navlis_11") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const data = await storage.getAnalytics();
+    res.json(data);
+  });
+
+  app.get("/api/admin/config", async (req, res) => {
+    const password = req.query.password;
+    if (password !== "Navlis_11") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const data = await storage.getConfig();
+    res.json(data);
+  });
+
+  app.post("/api/admin/config", async (req, res) => {
+    const password = req.query.password;
+    if (password !== "Navlis_11") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const config = req.body;
+    const data = await storage.updateConfig(config);
+    res.json(data);
+  });
+
   return httpServer;
 }
