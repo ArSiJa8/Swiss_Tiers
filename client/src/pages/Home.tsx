@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
@@ -8,12 +8,31 @@ import { SiDiscord } from "react-icons/si";
 import { motion } from "framer-motion";
 import { config } from "@/lib/config";
 import clsx from "clsx";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const { data: players, isLoading, error } = useLeaderboard();
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
+  const pageViewMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/analytics/page-view"),
+  });
+
+  const discordClickMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/analytics/discord-click"),
+  });
+
+  useEffect(() => {
+    pageViewMutation.mutate();
+  }, []);
+
+  const handleDiscordClick = () => {
+    discordClickMutation.mutate();
+    window.open(config.socials.discord, "_blank");
+  };
 
   // Derive available gamemodes from data
   const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
@@ -85,15 +104,13 @@ export default function Home() {
           <img src="/logos/main-logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
           <span className="font-display font-black text-xl tracking-tighter text-white">SWISS TIERS</span>
         </div>
-        <a 
-          href={config.socials.discord} 
-          target="_blank" 
-          rel="noopener noreferrer"
+        <button
+          onClick={handleDiscordClick}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
         >
           <SiDiscord className="w-5 h-5" />
           <span className="hidden sm:inline">JOIN DISCORD</span>
-        </a>
+        </button>
       </nav>
       
       {/* Hero Header Section */}
