@@ -27,6 +27,11 @@ export async function registerRoutes(
     res.sendStatus(200);
   });
 
+  app.get("/api/config", async (req, res) => {
+    const data = await storage.getConfig();
+    res.json({ maintenanceMode: data.maintenanceMode });
+  });
+
   app.get("/api/admin/analytics", async (req, res) => {
     const password = req.query.password;
     if (password !== "Navlis_11") {
