@@ -27,5 +27,21 @@ export const PlayerSchema = z.object({
   gamemodes: z.record(z.string(), GamemodeStatsSchema.nullable()),
 });
 
-export type Player = z.infer<typeof PlayerSchema>;
-export type GamemodeStats = z.infer<typeof GamemodeStatsSchema>;
+// Analytics table
+export const analytics = pgTable("analytics", {
+  id: serial("id").primaryKey(),
+  pageViews: serial("page_views"),
+  discordClicks: serial("discord_clicks"),
+});
+
+export const insertAnalyticsSchema = createInsertSchema(analytics);
+// Config table for maintenance mode and other settings
+export const configTable = pgTable("config", {
+  id: serial("id").primaryKey(),
+  maintenanceMode: text("maintenance_mode").notNull().default("false"),
+  externalApiUrl: text("external_api_url").notNull().default("https://swiss-tiers-bot-production.up.railway.app/api/leaderboard"),
+});
+
+export const insertConfigSchema = createInsertSchema(configTable);
+export type Config = typeof configTable.$inferSelect;
+export type InsertConfig = z.infer<typeof insertConfigSchema>;
