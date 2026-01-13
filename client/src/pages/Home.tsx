@@ -87,10 +87,10 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-background text-primary px-4">
         <div className="bg-card/30 backdrop-blur-xl p-12 rounded-3xl border border-white/5 text-center max-w-lg shadow-2xl">
           <ShieldAlert className="w-16 h-16 mx-auto mb-6 text-primary animate-pulse" />
-          <h2 className="text-4xl font-display font-black mb-4">WARTUNGSMODUS</h2>
+          <h2 className="text-4xl font-display font-black mb-4">MAINTENANCE MODE</h2>
           <p className="text-muted-foreground text-lg font-light">
-            Wir führen gerade Wartungsarbeiten durch, um dein Erlebnis zu verbessern. 
-            Bitte schau später wieder vorbei!
+            We are currently performing maintenance to improve your experience. 
+            Please check back later!
           </p>
           <div className="mt-8 pt-8 border-t border-white/5">
              <button
