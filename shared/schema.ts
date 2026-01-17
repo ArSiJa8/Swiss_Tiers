@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -27,14 +27,18 @@ export const PlayerSchema = z.object({
   gamemodes: z.record(z.string(), GamemodeStatsSchema.nullable()),
 });
 
+export type Player = z.infer<typeof PlayerSchema>;
+
 // Analytics table
 export const analytics = pgTable("analytics", {
   id: serial("id").primaryKey(),
-  pageViews: serial("page_views"),
-  discordClicks: serial("discord_clicks"),
+  pageViews: integer("page_views").notNull().default(0),
+  discordClicks: integer("discord_clicks").notNull().default(0),
 });
 
 export const insertAnalyticsSchema = createInsertSchema(analytics);
+export type Analytics = typeof analytics.$inferSelect;
+
 // Config table for maintenance mode and other settings
 export const configTable = pgTable("config", {
   id: serial("id").primaryKey(),

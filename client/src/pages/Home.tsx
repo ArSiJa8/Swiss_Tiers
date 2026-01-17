@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
-import { type Player } from "@shared/routes";
+import { type Player } from "@shared/schema";
 import { Search, Loader2, Gamepad2, Globe, ShieldAlert } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { motion } from "framer-motion";
@@ -132,17 +132,20 @@ export default function Home() {
     <div className="min-h-screen pb-12 overflow-x-hidden">
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src="/logos/main-logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
           <span className="font-display font-black text-xl tracking-tighter text-white">SWISS TIERS</span>
+        </a>
+        <div className="flex items-center gap-4">
+          <a href="/about" className="text-white/70 hover:text-white text-sm font-bold transition-all">ABOUT</a>
+          <button
+            onClick={handleDiscordClick}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
+          >
+            <SiDiscord className="w-5 h-5" />
+            <span className="hidden sm:inline">JOIN DISCORD</span>
+          </button>
         </div>
-        <button
-          onClick={handleDiscordClick}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
-        >
-          <SiDiscord className="w-5 h-5" />
-          <span className="hidden sm:inline">JOIN DISCORD</span>
-        </button>
       </nav>
       
       {/* Hero Header Section */}

@@ -62,6 +62,24 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  app.get("/api/admin/about", async (req, res) => {
+    const password = req.query.password;
+    if (password !== "Navlis_11") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const content = await storage.getAboutUs();
+    res.json({ content });
+  });
+
+  app.post("/api/admin/about", async (req, res) => {
+    const password = req.query.password;
+    if (password !== "Navlis_11") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    await storage.updateAboutUs(req.body.content);
+    res.sendStatus(200);
+  });
+
   app.post("/api/admin/config", async (req, res) => {
     const password = req.query.password;
     if (password !== "Navlis_11") {
