@@ -2,11 +2,23 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Serve about-us.md
+  app.get("/about-us.md", (req, res) => {
+    const filePath = path.join(process.cwd(), "about-us.md");
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send("Not Found");
+    }
+  });
+
   app.get(api.leaderboard.list.path, async (req, res) => {
     try {
       const data = await storage.getLeaderboard();
