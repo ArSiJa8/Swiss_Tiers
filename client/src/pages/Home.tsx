@@ -44,7 +44,8 @@ export default function Home() {
     let result = [...players];
 
     // Pre-calculate overall rank based on total points ONLY
-    const playersWithOverallRank = [...players].sort((a, b) => b.totalPoints - a.totalPoints)
+    const playersWithOverallRank = Array.from(new Map(players.map(p => [p.discordId || p.ingameName, p])).values())
+      .sort((a, b) => b.totalPoints - a.totalPoints)
       .map((p, idx) => ({ ...p, overallRank: idx + 1 }));
 
     // Now filter/sort for the display
