@@ -21,6 +21,7 @@ export const GamemodeStatsSchema = z.object({
 });
 
 export const PlayerSchema = z.object({
+  discordId: z.string().nullable().optional(),
   discordName: z.string().nullable().optional(),
   ingameName: z.string(),
   totalPoints: z.number(),
