@@ -21,6 +21,17 @@ export default function Home() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [location, setLocation] = useLocation();
 
+  const handleCloseModal = () => {
+    setSelectedPlayer(null);
+    // Remove the ?player query param from URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("player")) {
+      params.delete("player");
+      const newQuery = params.toString();
+      setLocation(newQuery ? `/?${newQuery}` : "/");
+    }
+  };
+
   useEffect(() => {
     if (players && !selectedPlayer) {
       const params = new URLSearchParams(window.location.search);
@@ -340,7 +351,7 @@ export default function Home() {
       <PlayerModal 
         player={selectedPlayer} 
         isOpen={!!selectedPlayer} 
-        onClose={() => setSelectedPlayer(null)} 
+        onClose={handleCloseModal} 
       />
 
           {/* Tracking Pixel */}
