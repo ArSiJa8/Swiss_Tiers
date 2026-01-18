@@ -1,0 +1,23 @@
+{
+  "name": "Swiss Tiers Leaderboard",
+  "short_name": "SwissTiers",
+  "description": "Minecraft PvP Leaderboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "/logos/main-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/main-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -3,9 +3,9 @@ import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
 import { type Player } from "@shared/schema";
-import { Search, Loader2, Gamepad2, Globe, ShieldAlert } from "lucide-react";
+import { Search, Loader2, Gamepad2, Globe, ShieldAlert, Download } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { config } from "@/lib/config";
 import clsx from "clsx";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -16,17 +16,37 @@ export default function Home() {
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
-  const pageViewMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/analytics/page-view"),
-  });
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    }
+  };
 
   const discordClickMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/analytics/discord-click"),
   });
 
   useEffect(() => {
-    pageViewMutation.mutate();
+    apiRequest("POST", "/api/analytics/page-view");
   }, []);
 
   const handleDiscordClick = () => {
@@ -131,6 +151,44 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-12 overflow-x-hidden">
+      {/* Install Prompt */}
+      <AnimatePresence>
+        {showInstallPrompt && (
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-md"
+          >
+            <div className="bg-zinc-900/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">
+                  <Download className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">App installieren</h4>
+                  <p className="text-xs text-zinc-400">Schnellerer Zugriff auf Rankings</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowInstallPrompt(false)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition-colors"
+                >
+                  Später
+                </button>
+                <button
+                  onClick={handleInstallClick}
+                  className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  Installieren
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
