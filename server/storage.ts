@@ -1,12 +1,13 @@
-import { type Player, type Analytics, type Config, analytics, configTable } from "@shared/schema";
+import { type Player, type Analytics, type Config, type AnalyticsTrend, analytics, configTable, analyticsTrends } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 import fs from "fs/promises";
 import path from "path";
 
 export interface IStorage {
   getLeaderboard(): Promise<Player[]>;
   getAnalytics(): Promise<Analytics>;
+  getAnalyticsTrends(): Promise<AnalyticsTrend[]>;
   incrementPageViews(): Promise<void>;
   incrementDiscordClicks(): Promise<void>;
   getConfig(): Promise<Config>;
@@ -59,12 +60,36 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAnalyticsTrends(): Promise<AnalyticsTrend[]> {
+    return await db.select().from(analyticsTrends).orderBy(desc(analyticsTrends.date)).limit(30);
+  }
+
+  private async updateTrend(field: 'page_views' | 'discord_clicks'): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      await db.insert(analyticsTrends)
+        .values({ 
+          date: today, 
+          pageViews: field === 'page_views' ? 1 : 0, 
+          discordClicks: field === 'discord_clicks' ? 1 : 0 
+        })
+        .onConflictDoUpdate({
+          target: analyticsTrends.date,
+          set: { [field === 'page_views' ? 'pageViews' : 'discordClicks']: sql`${sql.identifier(field)} + 1` }
+        });
+    } catch (error) {
+      console.error("updateTrend error:", error);
+    }
+  }
+
   async incrementPageViews(): Promise<void> {
     await db.update(analytics).set({ pageViews: sql`page_views + 1` }).where(eq(analytics.id, 1));
+    await this.updateTrend('page_views');
   }
 
   async incrementDiscordClicks(): Promise<void> {
     await db.update(analytics).set({ discordClicks: sql`discord_clicks + 1` }).where(eq(analytics.id, 1));
+    await this.updateTrend('discord_clicks');
   }
 
   async getConfig(): Promise<Config> {

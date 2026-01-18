@@ -37,8 +37,16 @@ export const analytics = pgTable("analytics", {
   discordClicks: integer("discord_clicks").notNull().default(0),
 });
 
-export const insertAnalyticsSchema = createInsertSchema(analytics);
-export type Analytics = typeof analytics.$inferSelect;
+// Analytics trends table
+export const analyticsTrends = pgTable("analytics_trends", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(), // YYYY-MM-DD
+  pageViews: integer("page_views").notNull().default(0),
+  discordClicks: integer("discord_clicks").notNull().default(0),
+});
+
+export const insertAnalyticsTrendsSchema = createInsertSchema(analyticsTrends);
+export type AnalyticsTrend = typeof analyticsTrends.$inferSelect;
 
 // Config table for maintenance mode and other settings
 export const configTable = pgTable("config", {

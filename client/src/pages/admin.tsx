@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, MousePointerClick, Lock, Settings, ShieldAlert, FileText } from "lucide-react";
+import { Eye, MousePointerClick, Lock, Settings, ShieldAlert, FileText, TrendingUp } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function Admin() {
   const [password, setPassword] = useState("");
@@ -25,6 +26,12 @@ export default function Admin() {
     },
     enabled: isAuthorized,
   });
+
+  const chartData = analytics?.trends?.map((t: any) => ({
+    date: new Date(t.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+    Aufrufe: t.pageViews,
+    Klicks: t.discordClicks
+  })).reverse() || [];
 
   const { data: config, isLoading: configLoading } = useQuery({
     queryKey: ["/api/admin/config", password],
@@ -142,6 +149,58 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <CardTitle>Analytics Trends (Letzte 30 Tage)</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#888" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="#888" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #333', borderRadius: '8px' }}
+                  itemStyle={{ fontSize: '12px' }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="Aufrufe" 
+                  stroke="#ef4444" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="Klicks" 
+                  stroke="#5865F2" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

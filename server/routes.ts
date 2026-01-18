@@ -50,7 +50,8 @@ export async function registerRoutes(
       return res.status(401).json({ message: "Unauthorized" });
     }
     const data = await storage.getAnalytics();
-    res.json(data);
+    const trends = await storage.getAnalyticsTrends();
+    res.json({ ...data, trends });
   });
 
   app.get("/api/admin/config", async (req, res) => {
