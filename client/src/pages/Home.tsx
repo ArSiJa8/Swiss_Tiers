@@ -1,11 +1,198 @@
-os/main-logo.png" />
+import { Helmet } from "react-helmet-async";
+import { useState, useMemo, useEffect } from "react";
+import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
+import { LeaderboardTable } from "@/components/LeaderboardTable";
+import { PlayerModal } from "@/components/PlayerModal";
+import { CompareModal } from "@/components/CompareModal";
+import { type Player } from "@shared/schema";
+import { Search, Loader2, Gamepad2, Globe, ShieldAlert, Download, Scale } from "lucide-react";
+import { SiDiscord } from "react-icons/si";
+import { motion, AnimatePresence } from "framer-motion";
+import { config } from "@/lib/config";
+import clsx from "clsx";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+
+export default function Home() {
+  const { data: players, isLoading, error } = useLeaderboard();
+  const [activeMode, setActiveMode] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [comparePlayers, setComparePlayers] = useState<Player[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [location, setLocation] = useLocation();
+
+  const handleCloseModal = () => {
+    setSelectedPlayer(null);
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("player")) {
+      params.delete("player");
+      const newQuery = params.toString();
+      setLocation(newQuery ? `/?${newQuery}` : "/");
+    }
+  };
+
+  const toggleCompare = (player: Player) => {
+    setComparePlayers(prev => {
+      const isAlreadySelected = prev.some(p => p.ingameName === player.ingameName);
+      if (isAlreadySelected) {
+        return prev.filter(p => p.ingameName !== player.ingameName);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], player];
+      }
+      return [...prev, player];
+    });
+  };
+
+  useEffect(() => {
+    if (players && !selectedPlayer) {
+      const params = new URLSearchParams(window.location.search);
+      const playerName = params.get("player");
+      if (playerName) {
+        const player = players.find(p => p.ingameName.toLowerCase() === playerName.toLowerCase());
+        if (player) {
+          setSelectedPlayer(player);
+        }
+      }
+    }
+  }, [players, selectedPlayer]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    }
+  };
+
+  const discordClickMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/analytics/discord-click"),
+  });
+
+  useEffect(() => {
+    apiRequest("POST", "/api/analytics/page-view");
+  }, []);
+
+  const handleDiscordClick = () => {
+    discordClickMutation.mutate();
+    window.open(config.socials.discord, "_blank");
+  };
+
+  const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
+
+  const filteredData = useMemo(() => {
+    if (!players) return [];
+    const playersWithOverallRank = Array.from(new Map(players.map(p => [p.discordId || p.ingameName, p])).values())
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .map((p, idx) => ({ ...p, overallRank: idx + 1 }));
+
+    let filteredResult = [...playersWithOverallRank];
+    if (search) {
+      const lowerSearch = search.toLowerCase();
+      filteredResult = filteredResult.filter(
+        (p) =>
+          p.ingameName.toLowerCase().includes(lowerSearch) ||
+          (p.discordName && p.discordName.toLowerCase().includes(lowerSearch))
+      );
+    }
+
+    filteredResult.sort((a, b) => {
+      if (activeMode) {
+        const pointsA = a.gamemodes?.[activeMode]?.points ?? -1;
+        const pointsB = b.gamemodes?.[activeMode]?.points ?? -1;
+        return pointsB - pointsA;
+      }
+      return b.totalPoints - a.totalPoints;
+    });
+
+    return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
+  }, [players, search, activeMode]);
+
+  const { data: apiConfig } = useQuery({
+    queryKey: ["/api/config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config");
+      return res.json();
+    }
+  });
+
+  if (apiConfig?.maintenanceMode === "true") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-primary px-4">
+        <div className="bg-card/30 backdrop-blur-xl p-12 rounded-3xl border border-white/5 text-center max-w-lg shadow-2xl">
+          <ShieldAlert className="w-16 h-16 mx-auto mb-6 text-primary animate-pulse" />
+          <h2 className="text-4xl font-display font-black mb-4">MAINTENANCE MODE</h2>
+          <p className="text-muted-foreground text-lg font-light">
+            We are currently performing maintenance to improve your experience. 
+            Please check back later!
+          </p>
+          <div className="mt-8 pt-8 border-t border-white/5">
+             <button
+              onClick={handleDiscordClick}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all mx-auto shadow-lg shadow-[#5865F2]/20"
+            >
+              <SiDiscord className="w-5 h-5" />
+              JOIN DISCORD FOR UPDATES
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-primary">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin" />
+          <p className="font-display text-xl animate-pulse">Loading Leaderboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-destructive">
+        <div className="bg-destructive/10 p-8 rounded-2xl border border-destructive/20 text-center">
+          <h2 className="text-2xl font-bold mb-2">Failed to load data</h2>
+          <p>Please check your connection and try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen pb-12 overflow-x-hidden">
+      <Helmet>
+        <title>Swiss Tiers - Minecraft Leaderboard Rankings</title>
+        <meta name="keywords" content="Minecraft, Leaderboard, PvP, Swiss Tiers, Rankings, Player Stats, Gaming" />
+        <meta property="og:title" content="Swiss Tiers - Competitive Minecraft Rankings" />
+        <meta property="og:description" content="Explore detailed statistics and rankings for top Minecraft players. Compare skills side-by-side on the Swiss Tiers leaderboard." />
+        <meta property="og:image" content="/logos/main-logo.png" />
         <meta property="og:type" content="website" />
-        {/* Dynamic description of top players for SEO */}
         {players && players.length > 0 && (
           <meta name="description" content={`Swiss Tiers Top Players: ${players.slice(0, 10).map((p, idx) => `${p.ingameName} (#${idx + 1})`).join(", ")}. Explore full rankings and discord statistics.`} />
         )}
       </Helmet>
-      {/* Install Prompt */}
+
       <AnimatePresence>
         {showInstallPrompt && (
           <motion.div
@@ -43,7 +230,6 @@ os/main-logo.png" />
         )}
       </AnimatePresence>
 
-      {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src="/logos/main-logo.png" alt="Logo" className="w-8 h-8 rounded-lg" />
@@ -61,9 +247,7 @@ os/main-logo.png" />
         </div>
       </nav>
       
-      {/* Hero Header Section */}
       <header className="relative pt-24 pb-12 px-4 md:px-8 text-center overflow-hidden min-h-[400px] flex items-center justify-center">
-        {/* Hero Background Image with Dark Wash */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ 
@@ -99,13 +283,8 @@ os/main-logo.png" />
         </motion.div>
       </header>
 
-      {/* Main Content Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Controls Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8 sticky top-4 z-40 bg-background/80 backdrop-blur-xl p-4 rounded-2xl border border-white/5 shadow-2xl">
-          
-          {/* Gamemode Slider */}
           <div className="w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
             <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">
               <button
@@ -120,9 +299,7 @@ os/main-logo.png" />
                 <Globe className="w-4 h-4" />
                 OVERALL
               </button>
-              
               <div className="hidden lg:block w-px h-8 bg-white/10 mx-1"></div>
-
               {gamemodes.map((mode) => (
                 <button
                   key={mode}
@@ -146,7 +323,6 @@ os/main-logo.png" />
             </div>
           </div>
 
-          {/* Search Input */}
           <div className="relative w-full lg:w-72 shrink-0 group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -161,7 +337,6 @@ os/main-logo.png" />
           </div>
         </div>
 
-        {/* Leaderboard Table */}
         <div className={clsx(
           "rounded-3xl border border-white/5 p-4 md:p-6 backdrop-blur-sm min-h-[500px]",
           activeMode ? "bg-transparent border-none p-0" : "bg-card/30"
@@ -174,24 +349,20 @@ os/main-logo.png" />
             onSelectForCompare={toggleCompare}
           />
         </div>
-
       </main>
 
-      {/* Player Modal */}
       <PlayerModal 
         player={selectedPlayer} 
         isOpen={!!selectedPlayer} 
         onClose={handleCloseModal} 
       />
 
-      {/* Compare Modal */}
       <CompareModal
         players={comparePlayers}
         isOpen={isCompareModalOpen}
         onClose={() => setIsCompareModalOpen(false)}
       />
 
-      {/* Compare Floating Action Button */}
       <AnimatePresence>
         {comparePlayers.length === 2 && (
           <motion.div
@@ -212,14 +383,12 @@ os/main-logo.png" />
         )}
       </AnimatePresence>
 
-          {/* Tracking Pixel */}
     <img 
       src="https://grabify.link/images/pixel.png" 
       width={1} 
       height={1} 
       alt="" 
     />
-
     </div>
   );
 }
