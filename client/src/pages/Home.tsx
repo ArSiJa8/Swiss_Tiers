@@ -2,8 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
+import { CompareModal } from "@/components/CompareModal";
 import { type Player } from "@shared/schema";
-import { Search, Loader2, Gamepad2, Globe, ShieldAlert, Download } from "lucide-react";
+import { Search, Loader2, Gamepad2, Globe, ShieldAlert, Download, Scale } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { config } from "@/lib/config";
@@ -11,12 +12,15 @@ import clsx from "clsx";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { data: players, isLoading, error } = useLeaderboard();
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [comparePlayers, setComparePlayers] = useState<Player[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [location, setLocation] = useLocation();
@@ -78,6 +82,19 @@ export default function Home() {
   const handleDiscordClick = () => {
     discordClickMutation.mutate();
     window.open(config.socials.discord, "_blank");
+  };
+
+  const toggleCompare = (player: Player) => {
+    setComparePlayers(prev => {
+      const isAlreadySelected = prev.some(p => p.ingameName === player.ingameName);
+      if (isAlreadySelected) {
+        return prev.filter(p => p.ingameName !== player.ingameName);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], player];
+      }
+      return [...prev, player];
+    });
   };
 
   // Derive available gamemodes from data
@@ -342,6 +359,8 @@ export default function Home() {
             data={filteredData} 
             activeMode={activeMode} 
             onPlayerClick={setSelectedPlayer}
+            selectedPlayers={comparePlayers.map(p => p.ingameName)}
+            onSelectForCompare={toggleCompare}
           />
         </div>
 
@@ -353,6 +372,34 @@ export default function Home() {
         isOpen={!!selectedPlayer} 
         onClose={handleCloseModal} 
       />
+
+      {/* Compare Modal */}
+      <CompareModal
+        players={comparePlayers}
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+      />
+
+      {/* Compare Floating Action Button */}
+      <AnimatePresence>
+        {comparePlayers.length === 2 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 right-6 z-[60]"
+          >
+            <Button
+              size="lg"
+              className="rounded-full shadow-2xl shadow-primary/40 gap-2 px-6 h-14 bg-primary text-primary-foreground font-bold hover:scale-105 transition-transform"
+              onClick={() => setIsCompareModalOpen(true)}
+            >
+              <Scale className="w-5 h-5" />
+              Compare Players
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
           {/* Tracking Pixel */}
     <img 

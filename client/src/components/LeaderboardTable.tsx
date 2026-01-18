@@ -1,7 +1,8 @@
 import { type Player } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Medal, Crown, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { Trophy, Medal, Crown, ArrowUp, ArrowDown, Minus, Scale } from "lucide-react";
 import clsx from "clsx";
+import { Button } from "@/components/ui/button";
 
 interface LeaderboardTableProps {
   data: Player[];
@@ -9,7 +10,7 @@ interface LeaderboardTableProps {
   onPlayerClick: (player: Player) => void;
   compareMode?: boolean;
   selectedPlayers?: string[];
-  onSelectForCompare?: (playerName: string) => void;
+  onSelectForCompare?: (player: Player) => void;
 }
 
 export function LeaderboardTable({ 
@@ -173,6 +174,24 @@ export function LeaderboardTable({
 
             {/* Player Info Column */}
             <div className="col-span-7 md:col-span-4 flex items-center gap-3 md:gap-4">
+              <div className="flex items-center gap-2 mr-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={clsx(
+                    "w-8 h-8 rounded-lg transition-all",
+                    selectedPlayers.includes(player.ingameName) 
+                      ? "bg-primary text-primary-foreground hover:bg-primary/80" 
+                      : "bg-white/5 text-muted-foreground hover:text-white"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectForCompare?.(player);
+                  }}
+                >
+                  <Scale className="w-4 h-4" />
+                </Button>
+              </div>
               <div className="relative w-10 h-10 md:w-14 md:h-14 shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary to-accent rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                 <img
