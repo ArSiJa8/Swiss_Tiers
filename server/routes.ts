@@ -91,5 +91,38 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const players = await storage.getLeaderboard();
+      const baseUrl = `https://${req.get("host")}`;
+      
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  ${players.map(player => `
+  <url>
+    <loc>${baseUrl}/?player=${encodeURIComponent(player.ingameName)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`).join("")}
+</urlset>`;
+
+      res.header("Content-Type", "application/xml");
+      res.send(sitemap);
+    } catch (error) {
+      console.error("Sitemap error:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
   return httpServer;
 }
