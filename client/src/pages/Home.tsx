@@ -75,7 +75,7 @@ export default function Home() {
     return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
   }, [players, search, activeMode]);
 
-  const { data: config } = useQuery({
+  const { data: apiConfig } = useQuery({
     queryKey: ["/api/config"],
     queryFn: async () => {
       const res = await fetch("/api/config");
@@ -83,7 +83,7 @@ export default function Home() {
     }
   });
 
-  if (config?.maintenanceMode === "true") {
+  if (apiConfig?.maintenanceMode === "true") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-primary px-4">
         <div className="bg-card/30 backdrop-blur-xl p-12 rounded-3xl border border-white/5 text-center max-w-lg shadow-2xl">
