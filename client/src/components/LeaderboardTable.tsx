@@ -1,4 +1,4 @@
-import { type Player } from "@shared/routes";
+import { type Player } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Crown, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import clsx from "clsx";
@@ -30,10 +30,28 @@ export function LeaderboardTable({
     }
   };
 
-  const getTrendIcon = (trend: number | undefined) => {
-    if (trend === undefined || trend === 0) return <Minus className="w-4 h-4 text-muted-foreground/40" />;
-    if (trend > 0) return <ArrowUp className="w-4 h-4 text-green-500" />;
-    return <ArrowDown className="w-4 h-4 text-red-500" />;
+  const getTrendIcon = (change: number | undefined) => {
+    if (change === undefined || change === 0) return <Minus className="w-4 h-4 text-muted-foreground/40" />;
+    if (change > 0) return (
+      <motion.div 
+        initial={{ y: 2, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }} 
+        className="flex items-center gap-0.5"
+      >
+        <ArrowUp className="w-4 h-4 text-green-500" />
+        <span className="text-[10px] font-bold text-green-500">+{change}</span>
+      </motion.div>
+    );
+    return (
+      <motion.div 
+        initial={{ y: -2, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }} 
+        className="flex items-center gap-0.5"
+      >
+        <ArrowDown className="w-4 h-4 text-red-500" />
+        <span className="text-[10px] font-bold text-red-500">{change}</span>
+      </motion.div>
+    );
   };
 
   const getRowStyle = (index: number) => {
@@ -149,7 +167,7 @@ export function LeaderboardTable({
                 {getRankIcon(index, player)}
               </div>
               <div className="flex items-center gap-0.5 opacity-60">
-                {getTrendIcon(player.rankTrend)}
+                {getTrendIcon(player.rankChange)}
               </div>
             </div>
 

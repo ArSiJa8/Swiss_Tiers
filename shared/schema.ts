@@ -20,12 +20,21 @@ export const GamemodeStatsSchema = z.object({
   extra: z.any().optional(),
 });
 
+// Rank history table to track changes
+export const rankHistory = pgTable("rank_history", {
+  id: serial("id").primaryKey(),
+  playerIdentifier: text("player_identifier").notNull().unique(), // discordId or ingameName
+  lastRank: integer("last_rank").notNull(),
+  lastUpdated: text("last_updated").notNull(),
+});
+
 export const PlayerSchema = z.object({
   discordId: z.string().nullable().optional(),
   discordName: z.string().nullable().optional(),
   ingameName: z.string(),
   totalPoints: z.number(),
   gamemodes: z.record(z.string(), GamemodeStatsSchema.nullable()),
+  rankChange: z.number().optional(), // Added for UI tracking
 });
 
 export type Player = z.infer<typeof PlayerSchema>;

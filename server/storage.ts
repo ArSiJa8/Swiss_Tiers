@@ -1,12 +1,12 @@
-import { type Player, type Analytics, type Config, type AnalyticsTrend, analytics, configTable, analyticsTrends } from "@shared/schema";
+import { type Player, type analytics, type Config, type AnalyticsTrend, analytics, configTable, analyticsTrends, rankHistory } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, inArray } from "drizzle-orm";
 import fs from "fs/promises";
 import path from "path";
 
 export interface IStorage {
   getLeaderboard(): Promise<Player[]>;
-  getAnalytics(): Promise<Analytics>;
+  getAnalytics(): Promise<typeof analytics.$inferSelect>;
   getAnalyticsTrends(): Promise<AnalyticsTrend[]>;
   incrementPageViews(): Promise<void>;
   incrementDiscordClicks(): Promise<void>;
@@ -32,7 +32,49 @@ export class DatabaseStorage implements IStorage {
       const response = await fetch(config.externalApiUrl);
       if (!response.ok) throw new Error(`API error: ${response.status}`);
       const data = await response.json();
-      this.cache = data as Player[];
+      let players = data as Player[];
+
+      // Calculate current ranks
+      const sortedPlayers = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
+      const currentRanks = new Map<string, number>();
+      sortedPlayers.forEach((p, idx) => {
+        currentRanks.set(p.discordId || p.ingameName, idx + 1);
+      });
+
+      // Fetch last known ranks
+      const playerIds = Array.from(currentRanks.keys());
+      const lastRanksRows = playerIds.length > 0 
+        ? await db.select().from(rankHistory).where(inArray(rankHistory.playerIdentifier, playerIds))
+        : [];
+      
+      const lastRanks = new Map<string, number>();
+      lastRanksRows.forEach(row => lastRanks.set(row.playerIdentifier, row.lastRank));
+
+      // Attach rank change info
+      players = players.map(p => {
+        const id = p.discordId || p.ingameName;
+        const currentRank = currentRanks.get(id) || 0;
+        const lastRank = lastRanks.get(id);
+        
+        return {
+          ...p,
+          rankChange: lastRank ? lastRank - currentRank : 0
+        };
+      });
+
+      // Update rank history in background
+      const today = new Date().toISOString().split('T')[0];
+      const rankEntries = Array.from(currentRanks.entries());
+      for (const [id, rank] of rankEntries) {
+        await db.insert(rankHistory)
+          .values({ playerIdentifier: id, lastRank: rank, lastUpdated: today })
+          .onConflictDoUpdate({
+            target: rankHistory.playerIdentifier,
+            set: { lastRank: rank, lastUpdated: today }
+          });
+      }
+
+      this.cache = players;
       this.lastFetch = now;
       return this.cache;
     } catch (error) {
@@ -41,7 +83,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAnalytics(): Promise<Analytics> {
+  async getAnalytics(): Promise<typeof analytics.$inferSelect> {
     try {
       const [row] = await db.select().from(analytics).where(eq(analytics.id, 1));
       if (!row) {
