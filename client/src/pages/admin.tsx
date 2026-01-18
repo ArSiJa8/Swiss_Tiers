@@ -5,13 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Eye, MousePointerClick, Lock, Settings, ShieldAlert } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Eye, MousePointerClick, Lock, Settings, ShieldAlert, FileText } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [aboutContent, setAboutContent] = useState("");
   const { toast } = useToast();
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
@@ -34,6 +36,22 @@ export default function Admin() {
     enabled: isAuthorized,
   });
 
+  const { data: aboutData } = useQuery({
+    queryKey: ["/api/admin/about", password],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/about?password=${password}`);
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.json();
+    },
+    enabled: isAuthorized,
+  });
+
+  useEffect(() => {
+    if (aboutData?.content) {
+      setAboutContent(aboutData.content);
+    }
+  }, [aboutData]);
+
   const updateConfigMutation = useMutation({
     mutationFn: async (newConfig: any) => {
       const res = await apiRequest("POST", `/api/admin/config?password=${password}`, newConfig);
@@ -42,6 +60,19 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/config", password] });
       toast({ title: "Konfiguration gespeichert" });
+    },
+    onError: () => {
+      toast({ title: "Fehler beim Speichern", variant: "destructive" });
+    }
+  });
+
+  const updateAboutMutation = useMutation({
+    mutationFn: async (content: string) => {
+      await apiRequest("POST", `/api/admin/about?password=${password}`, { content });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/about", password] });
+      toast({ title: "About Us gespeichert" });
     },
     onError: () => {
       toast({ title: "Fehler beim Speichern", variant: "destructive" });
@@ -111,6 +142,32 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            <CardTitle>About Us Editor (Markdown)</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            value={aboutContent}
+            onChange={(e) => setAboutContent(e.target.value)}
+            className="min-h-[300px] font-mono text-sm"
+            placeholder="# Title..."
+            data-testid="textarea-about-md"
+          />
+          <Button 
+            onClick={() => updateAboutMutation.mutate(aboutContent)}
+            disabled={updateAboutMutation.isPending}
+            className="w-full"
+            data-testid="button-save-about"
+          >
+            {updateAboutMutation.isPending ? "Speichern..." : "About Us Speichern"}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
