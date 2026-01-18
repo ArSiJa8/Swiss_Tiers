@@ -10,6 +10,7 @@ import { config } from "@/lib/config";
 import clsx from "clsx";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { data: players, isLoading, error } = useLeaderboard();
@@ -18,6 +19,20 @@ export default function Home() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (players && !selectedPlayer) {
+      const params = new URLSearchParams(window.location.search);
+      const playerName = params.get("player");
+      if (playerName) {
+        const player = players.find(p => p.ingameName.toLowerCase() === playerName.toLowerCase());
+        if (player) {
+          setSelectedPlayer(player);
+        }
+      }
+    }
+  }, [players, selectedPlayer]);
 
   useEffect(() => {
     const handler = (e: any) => {

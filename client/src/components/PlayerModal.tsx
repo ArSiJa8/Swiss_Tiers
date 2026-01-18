@@ -1,9 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { type Player } from "@shared/routes";
+import { type Player } from "@shared/schema";
 import { motion } from "framer-motion";
-import { Trophy, Swords, Zap, Crown } from "lucide-react";
+import { Trophy, Swords, Zap, Crown, Share2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { config } from "@/lib/config";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlayerModalProps {
   player: Player | null;
@@ -12,7 +14,37 @@ interface PlayerModalProps {
 }
 
 export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
+  const { toast } = useToast();
   if (!player) return null;
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/?player=${player.ingameName}`;
+    const shareText = `Check out ${player.ingameName}'s stats on the Leaderboard! Overall Rank: #${player.overallRank || '-'} with ${player.totalPoints} points.`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${player.ingameName}'s Stats`,
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copied!",
+          description: "Player profile link has been copied to clipboard.",
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name !== 'AbortError') {
+        toast({
+          title: "Sharing failed",
+          description: "Could not share player stats.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   // Find the highest badge earned
   const earnedBadges = [...config.badges]
@@ -21,11 +53,11 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] md:w-full bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50 max-h-[90vh] overflow-y-auto md:overflow-hidden">
-        <div className="flex flex-col md:grid md:grid-cols-3 h-full">
+      <DialogContent className="max-w-4xl w-[95vw] md:w-full bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50 max-h-[90vh] flex flex-col md:flex-row">
+        <div className="flex flex-col md:grid md:grid-cols-3 w-full overflow-y-auto custom-scrollbar">
           
           {/* Left Column: Avatar & Basic Info */}
-          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5 relative overflow-hidden">
+          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5 relative overflow-hidden shrink-0">
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
             
             {/* Rank badge decoration */}
@@ -52,8 +84,8 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
                           />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-card border-white/10 text-white">
-                        <p className="font-bold">{badge.name}</p>
+                      <TooltipContent side="right" className="bg-card border-white/10 text-white z-[100] max-w-[200px]">
+                        <p className="font-bold truncate">{badge.name}</p>
                         <p className="text-xs text-muted-foreground">{badge.threshold} Points Required</p>
                       </TooltipContent>
                     </Tooltip>
@@ -97,6 +129,16 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
                 <p className="text-2xl md:text-3xl font-display font-black text-primary mt-0.5 md:mt-1">#{player.overallRank || '-'}</p>
               </div>
             </div>
+
+            <Button 
+              onClick={handleShare}
+              variant="outline" 
+              className="mt-6 w-full gap-2 border-white/10 hover:bg-white/5 hover:border-primary/50 group transition-all duration-300"
+              data-testid="button-share-stats"
+            >
+              <Share2 className="w-4 h-4 group-hover:text-primary transition-colors" />
+              Share Stats
+            </Button>
           </div>
 
           {/* Right Column: Detailed Stats */}
@@ -142,11 +184,11 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                         <p className="text-xs text-muted-foreground uppercase">Rank</p>
-                        <p className="text-xl font-mono font-bold text-accent">{stats.rank}</p>
+                        <p className="text-xl font-mono font-bold text-accent">{(stats as any).rank}</p>
                       </div>
                       <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                         <p className="text-xs text-muted-foreground uppercase">Points</p>
-                        <p className="text-xl font-mono font-bold text-white">{stats.points}</p>
+                        <p className="text-xl font-mono font-bold text-white">{(stats as any).points}</p>
                       </div>
                     </div>
                   </motion.div>
