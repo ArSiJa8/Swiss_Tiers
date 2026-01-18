@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type Player } from "@shared/schema";
 import { motion } from "framer-motion";
@@ -53,6 +54,25 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      {player && (
+        <Helmet>
+          <title>{`${player.ingameName} - Swiss Tiers Player Profile`}</title>
+          <meta name="description" content={`View statistics for ${player.ingameName} on Swiss Tiers. Overall Rank: #${(player as any).overallRank || '-'}. Discord: ${player.discordName || 'N/A'}.`} />
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              "name": player.ingameName,
+              "description": `Minecraft player ranking #${(player as any).overallRank || '-'} on Swiss Tiers`,
+              "alternateName": player.discordName,
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `${window.location.origin}/?player=${player.ingameName}`
+              }
+            })}
+          </script>
+        </Helmet>
+      )}
       <DialogContent className="max-w-4xl w-[95vw] md:w-full bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50 max-h-[90vh] flex flex-col md:flex-row">
         <div className="flex flex-col md:grid md:grid-cols-3 w-full overflow-y-auto custom-scrollbar">
           

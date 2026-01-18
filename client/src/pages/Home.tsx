@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet";
 import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
@@ -194,6 +195,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-12 overflow-x-hidden">
+      <Helmet>
+        <title>Swiss Tiers - Minecraft Leaderboard Rankings</title>
+        <meta name="description" content="Official Swiss Tiers leaderboard. Check global ranks, player statistics, and performance across multiple game modes. Featuring top players and real-time rank updates." />
+        <meta name="keywords" content="Minecraft, Leaderboard, PvP, Swiss Tiers, Rankings, Player Stats, Gaming" />
+        <meta property="og:title" content="Swiss Tiers - Competitive Minecraft Rankings" />
+        <meta property="og:description" content="Explore detailed statistics and rankings for top Minecraft players. Compare skills side-by-side on the Swiss Tiers leaderboard." />
+        <meta property="og:image" content="/logos/main-logo.png" />
+        <meta property="og:type" content="website" />
+        {/* Dynamic description of top players for SEO */}
+        {players && players.length > 0 && (
+          <meta name="description" content={`Swiss Tiers Top Players: ${players.slice(0, 10).map((p, idx) => `${p.ingameName} (#${idx + 1})`).join(", ")}. Explore full rankings and discord statistics.`} />
+        )}
+      </Helmet>
       {/* Install Prompt */}
       <AnimatePresence>
         {showInstallPrompt && (
