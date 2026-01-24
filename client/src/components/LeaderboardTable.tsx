@@ -69,14 +69,12 @@ export function LeaderboardTable({
     // Group players by tier
     const tieredPlayers = tiers.map((tierName, tierIdx) => {
       const tierNum = tierIdx + 1;
-      const rankLT = `LT${tierNum}`;
-      const rankHT = `HT${tierNum}`;
       
       return {
         name: tierName,
         players: data.filter(p => {
-          const rank = p.gamemodes?.[activeMode]?.rank;
-          return rank === rankLT || rank === rankHT;
+          const rank = p.gamemodes?.[activeMode]?.rank?.toUpperCase() || "";
+          return rank.includes(`${tierNum}`);
         })
       };
     });
@@ -231,8 +229,8 @@ export function LeaderboardTable({
 
             {/* Tiers / Badges Column */}
             <div className="hidden md:flex col-span-5 justify-end gap-2 items-center flex-wrap">
-              {Object.entries(player.gamemodes || {}).slice(0, 4).map(([mode, stats]) => {
-                if (!stats) return null;
+              {Object.entries(player.gamemodes || {}).map(([mode, stats]) => {
+                if (!stats || !stats.rank) return null;
                 // Don't show the active mode badge in the "Other Ranks" column if filtered
                 if (activeMode === mode) return null;
                 
@@ -249,11 +247,6 @@ export function LeaderboardTable({
                   </div>
                 );
               })}
-              {Object.keys(player.gamemodes || {}).length > 4 && (
-                <span className="text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded-lg">
-                  +{Object.keys(player.gamemodes || {}).length - 4}
-                </span>
-              )}
             </div>
 
             {/* Hover Glow Effect */}
