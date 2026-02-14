@@ -26,6 +26,7 @@ export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [location, setLocation] = useLocation();
+  const [visibleCount, setVisibleCount] = useState(50);
 
   const handleCloseModal = () => {
     setSelectedPlayer(null);
@@ -98,7 +99,7 @@ export default function Home() {
 
   const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
 
-  const filteredData = useMemo(() => {
+  const allFilteredData = useMemo(() => {
     if (!players) return [];
     const playersWithOverallRank = Array.from(new Map(players.map(p => [p.discordId || p.ingameName, p])).values())
       .sort((a, b) => b.totalPoints - a.totalPoints)
@@ -125,6 +126,31 @@ export default function Home() {
 
     return filteredResult.map((p, idx) => ({ ...p, displayRank: idx + 1 }));
   }, [players, search, activeMode]);
+
+  const filteredData = useMemo(() => {
+    return allFilteredData.slice(0, visibleCount);
+  }, [allFilteredData, visibleCount]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 500
+      ) {
+        if (visibleCount < allFilteredData.length) {
+          setVisibleCount(prev => prev + 50);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [visibleCount, allFilteredData.length]);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [activeMode, search]);
 
   const { data: apiConfig } = useQuery({
     queryKey: ["/api/config"],
@@ -369,6 +395,14 @@ export default function Home() {
             selectedPlayers={comparePlayers.map(p => p.ingameName)}
             onSelectForCompare={toggleCompare}
           />
+          {visibleCount < allFilteredData.length && (
+            <div className="flex justify-center py-8">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-bold">Lade weitere Spieler...</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
