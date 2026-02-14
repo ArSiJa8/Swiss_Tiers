@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Crown, ArrowUp, ArrowDown, Minus, Scale } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface LeaderboardTableProps {
   data: Player[];
@@ -11,6 +12,39 @@ interface LeaderboardTableProps {
   compareMode?: boolean;
   selectedPlayers?: string[];
   onSelectForCompare?: (player: Player) => void;
+}
+
+export function TableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[...Array(10)].map((_, i) => (
+        <div 
+          key={i}
+          className="grid grid-cols-12 gap-4 items-center px-6 py-4 rounded-xl border border-white/5 bg-card/30"
+        >
+          <div className="col-span-1 flex justify-center">
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+          <div className="col-span-7 md:col-span-4 flex items-center gap-4">
+            <Skeleton className="h-10 w-10 md:h-14 md:w-14 rounded-xl" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+          <div className="col-span-4 md:col-span-2 flex flex-col items-center gap-2">
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-3 w-8" />
+          </div>
+          <div className="hidden md:flex col-span-5 justify-end gap-2">
+            <Skeleton className="h-8 w-20 rounded-lg" />
+            <Skeleton className="h-8 w-20 rounded-lg" />
+            <Skeleton className="h-8 w-20 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function LeaderboardTable({ 

@@ -1,11 +1,11 @@
 import { Helmet } from "react-helmet-async";
 import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard, getAvailableGamemodes } from "@/hooks/use-leaderboard";
-import { LeaderboardTable } from "@/components/LeaderboardTable";
+import { LeaderboardTable, TableSkeleton } from "@/components/LeaderboardTable";
 import { PlayerModal } from "@/components/PlayerModal";
 import { CompareModal } from "@/components/CompareModal";
 import { type Player } from "@shared/schema";
-import { Search, Loader2, Gamepad2, Globe, ShieldAlert, Download, Scale } from "lucide-react";
+import { Search, Gamepad2, Globe, ShieldAlert, Download, Scale } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { config } from "@/lib/config";
@@ -14,6 +14,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const { data: players, isLoading, error } = useLeaderboard();
@@ -159,11 +160,31 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-primary">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 animate-spin" />
-          <p className="font-display text-xl animate-pulse">Loading Leaderboard...</p>
-        </div>
+      <div className="min-h-screen pb-12 overflow-x-hidden">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse" />
+            <span className="font-display font-black text-xl tracking-tighter text-white">SWISS TIERS</span>
+          </div>
+        </nav>
+        
+        <header className="relative pt-24 pb-12 px-4 md:px-8 text-center min-h-[400px] flex items-center justify-center">
+          <div className="relative z-20 space-y-4">
+            <Skeleton className="w-24 h-24 rounded-2xl mx-auto" />
+            <Skeleton className="h-12 w-64 mx-auto" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 p-4 rounded-2xl border border-white/5 bg-card/30 flex justify-between gap-4">
+            <Skeleton className="h-10 w-96 rounded-xl" />
+            <Skeleton className="h-10 w-72 rounded-xl" />
+          </div>
+          <div className="rounded-3xl border border-white/5 p-4 md:p-6 bg-card/30">
+            <TableSkeleton />
+          </div>
+        </main>
       </div>
     );
   }
