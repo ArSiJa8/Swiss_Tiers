@@ -1,12 +1,7 @@
-import { Helmet } from "react-helmet-async";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { type Player } from "@shared/schema";
+import { type Player } from "@shared/routes";
 import { motion } from "framer-motion";
-import { Trophy, Swords, Zap, Crown, Share2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { config } from "@/lib/config";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Trophy, Swords, Zap, Crown } from "lucide-react";
 
 interface PlayerModalProps {
   player: Player | null;
@@ -15,162 +10,66 @@ interface PlayerModalProps {
 }
 
 export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
-  const { toast } = useToast();
   if (!player) return null;
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/?player=${player.ingameName}`;
-    const shareText = `Check out ${player.ingameName}'s stats on the Leaderboard! Overall Rank: #${player.overallRank || '-'} with ${player.totalPoints} points.`;
-    
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${player.ingameName}'s Stats`,
-          text: shareText,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "Link copied!",
-          description: "Player profile link has been copied to clipboard.",
-        });
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        toast({
-          title: "Sharing failed",
-          description: "Could not share player stats.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  // Find the highest badge earned
-  const earnedBadges = [...config.badges]
-    .filter(b => player.totalPoints >= b.threshold)
-    .sort((a, b) => b.threshold - a.threshold);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      {player && (
-        <Helmet>
-          <title>{`${player.ingameName} - Swiss Tiers Player Profile`}</title>
-          <meta name="description" content={`View statistics for ${player.ingameName} on Swiss Tiers. Overall Rank: #${(player as any).overallRank || '-'}. Discord: ${player.discordName || 'N/A'}.`} />
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Person",
-              "name": player.ingameName,
-              "description": `Minecraft player ranking #${(player as any).overallRank || '-'} on Swiss Tiers`,
-              "alternateName": player.discordName,
-              "mainEntityOfPage": {
-                "@type": "WebPage",
-                "@id": `${window.location.origin}/?player=${player.ingameName}`
-              }
-            })}
-          </script>
-        </Helmet>
-      )}
-      <DialogContent className="max-w-4xl w-[95vw] md:w-full bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50 max-h-[90vh] flex flex-col md:flex-row">
-        <div className="flex flex-col md:grid md:grid-cols-3 w-full overflow-y-auto custom-scrollbar">
+      <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden shadow-2xl shadow-black/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
           
           {/* Left Column: Avatar & Basic Info */}
-          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/5 relative overflow-hidden shrink-0">
+          <div className="md:col-span-1 bg-gradient-to-b from-primary/20 via-background to-background p-8 flex flex-col items-center justify-center border-r border-white/5 relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none mix-blend-overlay"></div>
             
             {/* Rank badge decoration */}
-            <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-              <div className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-                <Crown className="w-3 h-3" />
-                TOP PLAYER
-              </div>
-              
-              <TooltipProvider>
-                <div className="flex flex-wrap gap-2">
-                  {earnedBadges.map((badge) => (
-                    <Tooltip key={badge.id}>
-                      <TooltipTrigger asChild>
-                        <div className="w-8 h-8 rounded-lg bg-black/40 border border-white/10 p-1 flex items-center justify-center cursor-help hover:border-primary/50 transition-colors">
-                          <img 
-                            src={badge.icon} 
-                            alt={badge.name} 
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              // Placeholder for missing icon
-                              e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D52B1E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E";
-                            }}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-card border-white/10 text-white z-[100] max-w-[200px]">
-                        <p className="font-bold truncate">{badge.name}</p>
-                        <p className="text-xs text-muted-foreground">{badge.threshold} Points Required</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-              </TooltipProvider>
+            <div className="absolute top-4 left-4 bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+              <Crown className="w-3 h-3" />
+              TOP PLAYER
             </div>
 
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="relative z-10 w-40 md:w-full aspect-[3/4] flex items-center justify-center"
+              className="relative z-10 w-full aspect-[3/4] flex items-center justify-center"
             >
               {/* Bust Render */}
               <img 
-                src={`https://mineskin.eu/armor/bust/${player.ingameName}/150.png`}
+                src={`render.crafty.gg/3d/bust/${player.ingameName}`}
                 alt={player.ingameName}
                 className="w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform hover:scale-105 transition-transform duration-500"
               />
             </motion.div>
 
-            <div className="mt-4 md:mt-6 text-center z-10">
-              <h2 className="text-2xl md:text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+            <div className="mt-6 text-center z-10">
+              <h2 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
                 {player.ingameName}
               </h2>
               {player.discordName && (
-                <p className="text-xs md:text-sm text-muted-foreground font-mono mt-1 bg-black/30 px-3 py-0.5 md:py-1 rounded-full inline-block border border-white/5">
+                <p className="text-muted-foreground font-mono text-sm mt-1 bg-black/30 px-3 py-1 rounded-full inline-block border border-white/5">
                   @{player.discordName}
                 </p>
               )}
             </div>
             
-            <div className="mt-4 md:mt-8 w-full max-w-[200px] md:max-w-none grid grid-cols-2 gap-2 bg-white/5 rounded-xl p-3 md:p-4 border border-white/5 backdrop-blur-sm">
-              <div className="text-center border-r border-white/10 pr-2">
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Pts</p>
-                <p className="text-xl md:text-2xl font-display font-black text-white mt-0.5 md:mt-1">{player.totalPoints}</p>
-              </div>
-              <div className="text-center pl-2">
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-semibold">Overall</p>
-                <p className="text-2xl md:text-3xl font-display font-black text-primary mt-0.5 md:mt-1">#{player.overallRank || '-'}</p>
+            <div className="mt-8 w-full bg-white/5 rounded-xl p-4 border border-white/5 backdrop-blur-sm">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Points</p>
+                <p className="text-4xl font-display font-black text-primary mt-1">{player.totalPoints}</p>
               </div>
             </div>
-
-            <Button 
-              onClick={handleShare}
-              variant="outline" 
-              className="mt-6 w-full gap-2 border-white/10 hover:bg-white/5 hover:border-primary/50 group transition-all duration-300"
-              data-testid="button-share-stats"
-            >
-              <Share2 className="w-4 h-4 group-hover:text-primary transition-colors" />
-              Share Stats
-            </Button>
           </div>
 
           {/* Right Column: Detailed Stats */}
-          <div className="md:col-span-2 p-6 md:p-8 bg-background/50">
+          <div className="md:col-span-2 p-8 bg-background/50">
             <DialogHeader>
-              <DialogTitle className="text-lg md:text-xl font-display uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4 md:mb-6">
+              <DialogTitle className="text-xl font-display uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6">
                 <Swords className="w-5 h-5 text-accent" />
                 Performance Statistics
               </DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Object.entries(player.gamemodes || {}).map(([mode, stats], index) => {
                 if (!stats) return null;
                 
@@ -204,11 +103,11 @@ export function PlayerModal({ player, isOpen, onClose }: PlayerModalProps) {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                         <p className="text-xs text-muted-foreground uppercase">Rank</p>
-                        <p className="text-xl font-mono font-bold text-accent">{(stats as any).rank}</p>
+                        <p className="text-xl font-mono font-bold text-accent">{stats.rank}</p>
                       </div>
                       <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                         <p className="text-xs text-muted-foreground uppercase">Points</p>
-                        <p className="text-xl font-mono font-bold text-white">{(stats as any).points}</p>
+                        <p className="text-xl font-mono font-bold text-white">{stats.points}</p>
                       </div>
                     </div>
                   </motion.div>
