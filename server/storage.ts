@@ -109,16 +109,21 @@ export class DatabaseStorage implements IStorage {
   private async updateTrend(field: 'page_views' | 'discord_clicks'): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
     try {
-      await db.insert(analyticsTrends)
-        .values({ 
-          date: today, 
-          pageViews: field === 'page_views' ? 1 : 0, 
-          discordClicks: field === 'discord_clicks' ? 1 : 0 
-        })
-        .onConflictDoUpdate({
-          target: analyticsTrends.date,
-          set: { [field === 'page_views' ? 'pageViews' : 'discordClicks']: sql`${sql.identifier(field)} + 1` }
-        });
+      if (field === 'page_views') {
+        await db.insert(analyticsTrends)
+          .values({ date: today, pageViews: 1, discordClicks: 0 })
+          .onConflictDoUpdate({
+            target: analyticsTrends.date,
+            set: { pageViews: sql`${analyticsTrends.pageViews} + 1` }
+          });
+      } else {
+        await db.insert(analyticsTrends)
+          .values({ date: today, pageViews: 0, discordClicks: 1 })
+          .onConflictDoUpdate({
+            target: analyticsTrends.date,
+            set: { discordClicks: sql`${analyticsTrends.discordClicks} + 1` }
+          });
+      }
     } catch (error) {
       console.error("updateTrend error:", error);
     }
