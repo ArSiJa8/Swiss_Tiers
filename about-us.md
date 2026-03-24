@@ -1,6 +1,6 @@
 # About Swisstiers 🇨🇭
 
-**Created by ArSiJa**, Swisstiers is a Swiss version of a Minecraft PvP tier ranking system — similar to mctiers.com, but focused on the Swiss community!
+**Created by ArSi**, Swisstiers is the Swiss version of a Minecraft PvP tier ranking system — similar to mctiers.com, but focused on the Swiss community!
 
 ---
 
@@ -14,7 +14,9 @@ Swisstiers is a Minecraft tier-testing system where you can check your skill acr
 - UHC  
 - SMP  
 - Crystal  
-- Mace  
+- Mace
+- Speed
+- Axe
 
 ---
 
