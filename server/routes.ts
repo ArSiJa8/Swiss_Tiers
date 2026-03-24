@@ -41,7 +41,11 @@ export async function registerRoutes(
 
   app.get("/api/config", async (req, res) => {
     const data = await storage.getConfig();
-    res.json({ maintenanceMode: data.maintenanceMode });
+    res.json({
+      maintenanceMode: data.maintenanceMode,
+      bannerEnabled: data.bannerEnabled,
+      bannerText: data.bannerText,
+    });
   });
 
   app.get("/api/admin/analytics", async (req, res) => {

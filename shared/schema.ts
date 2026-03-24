@@ -62,6 +62,8 @@ export const configTable = pgTable("config", {
   id: serial("id").primaryKey(),
   maintenanceMode: text("maintenance_mode").notNull().default("false"),
   externalApiUrl: text("external_api_url").notNull().default("https://swiss-tiers-bot-production.up.railway.app/api/leaderboard"),
+  bannerEnabled: text("banner_enabled").notNull().default("false"),
+  bannerText: text("banner_text").notNull().default(""),
 });
 
 export const insertConfigSchema = createInsertSchema(configTable);

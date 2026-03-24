@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, MousePointerClick, Lock, Settings, ShieldAlert, FileText, TrendingUp } from "lucide-react";
+import { Eye, MousePointerClick, Lock, Settings, FileText, TrendingUp, Megaphone } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -15,6 +15,7 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [aboutContent, setAboutContent] = useState("");
+  const [bannerText, setBannerText] = useState("");
   const { toast } = useToast();
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
@@ -58,6 +59,12 @@ export default function Admin() {
       setAboutContent(aboutData.content);
     }
   }, [aboutData]);
+
+  useEffect(() => {
+    if (config?.bannerText !== undefined) {
+      setBannerText(config.bannerText);
+    }
+  }, [config]);
 
   const updateConfigMutation = useMutation({
     mutationFn: async (newConfig: any) => {
@@ -225,6 +232,47 @@ export default function Admin() {
           >
             {updateAboutMutation.isPending ? "Speichern..." : "About Us Speichern"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Megaphone className="w-5 h-5 text-primary" />
+            <CardTitle>Banner</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex flex-col space-y-1">
+              <Label htmlFor="banner-enabled">Banner anzeigen</Label>
+              <span className="text-xs text-muted-foreground">Zeigt oben auf der Seite einen Hinweis-Banner an.</span>
+            </div>
+            <Switch
+              id="banner-enabled"
+              checked={config?.bannerEnabled === "true"}
+              onCheckedChange={(checked) =>
+                updateConfigMutation.mutate({ bannerEnabled: checked ? "true" : "false" })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="banner-text">Banner Text (Markdown unterstützt)</Label>
+            <Textarea
+              id="banner-text"
+              value={bannerText}
+              onChange={(e) => setBannerText(e.target.value)}
+              className="min-h-[100px] font-mono text-sm"
+              placeholder="z.B. **Wartung** am Samstag von 18–20 Uhr."
+            />
+            <Button
+              onClick={() => updateConfigMutation.mutate({ bannerText })}
+              disabled={updateConfigMutation.isPending}
+              className="w-full"
+            >
+              {updateConfigMutation.isPending ? "Speichern..." : "Banner Text Speichern"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
