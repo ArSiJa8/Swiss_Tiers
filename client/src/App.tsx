@@ -27,12 +27,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
-          <div className="flex flex-col min-h-screen">
-            <Banner />
-            <div className="flex-1">
-              <Router />
-            </div>
-          </div>
+          <Banner />
+          <Router />
         </TooltipProvider>
       </QueryClientProvider>
     </HelmetProvider>

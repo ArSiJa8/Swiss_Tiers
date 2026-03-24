@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { X } from "lucide-react";
 
 export function Banner() {
   const [dismissed, setDismissed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   const { data: configData } = useQuery({
     queryKey: ["/api/config"],
@@ -19,19 +20,40 @@ export function Banner() {
 
   const isEnabled = configData?.bannerEnabled === "true";
   const text = configData?.bannerText ?? "";
-
   const visible = isEnabled && text.trim().length > 0 && !dismissed;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!visible || !el) {
+      document.documentElement.style.setProperty("--banner-h", "0px");
+      return;
+    }
+    const update = () => {
+      document.documentElement.style.setProperty("--banner-h", `${el.offsetHeight}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible) {
+      document.documentElement.style.setProperty("--banner-h", "0px");
+    }
+  }, [visible]);
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={ref}
           key="banner"
-          initial={{ y: "-100%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "-100%", opacity: 0 }}
+          initial={{ y: "-100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "-100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="w-full bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-2 text-sm relative"
+          className="fixed top-0 left-0 right-0 z-[70] bg-primary/95 backdrop-blur-sm text-primary-foreground px-4 py-2.5 text-sm shadow-lg"
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
             <div className="flex-1 prose prose-sm prose-invert max-w-none [&>*]:my-0 [&>p]:leading-snug">
