@@ -1,26 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { X } from "lucide-react";
 
+const HARDCODED_BANNER_TEXT =
+  "The account of the Owner was hacked. He made a new Discord account now, it's called **arsija_net**. The Discord Link will switch soon, please switch as soon as possible!";
+
 export function Banner() {
   const [dismissed, setDismissed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const { data: configData } = useQuery({
-    queryKey: ["/api/config"],
-    queryFn: async () => {
-      const res = await fetch("/api/config");
-      if (!res.ok) throw new Error("Failed to fetch config");
-      return res.json();
-    },
-    staleTime: 30 * 1000,
-  });
-
-  const isEnabled = configData?.bannerEnabled === "true";
-  const text = configData?.bannerText ?? "";
-  const visible = isEnabled && text.trim().length > 0 && !dismissed;
+  const text = HARDCODED_BANNER_TEXT;
+  const visible = text.trim().length > 0 && !dismissed;
 
   useEffect(() => {
     const el = ref.current;
