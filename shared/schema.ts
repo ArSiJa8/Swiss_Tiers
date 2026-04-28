@@ -64,6 +64,11 @@ export const configTable = pgTable("config", {
   externalApiUrl: text("external_api_url").notNull().default("https://swiss-tiers-bot-production.up.railway.app/api/leaderboard"),
   bannerEnabled: text("banner_enabled").notNull().default("false"),
   bannerText: text("banner_text").notNull().default(""),
+  announcementEnabled: text("announcement_enabled").notNull().default("false"),
+  announcementTitle: text("announcement_title").notNull().default(""),
+  announcementMessage: text("announcement_message").notNull().default(""),
+  discordInviteEnabled: text("discord_invite_enabled").notNull().default("true"),
+  discordInviteUrl: text("discord_invite_url").notNull().default("https://discord.gg/Kg7A42bPKz"),
 });
 
 export const insertConfigSchema = createInsertSchema(configTable);

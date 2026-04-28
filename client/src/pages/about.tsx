@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SiDiscord } from "react-icons/si";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { config as siteConfig } from "@/lib/config";
 
@@ -15,9 +15,20 @@ export default function About() {
     mutationFn: () => apiRequest("POST", "/api/analytics/discord-click"),
   });
 
+  const { data: apiConfig } = useQuery({
+    queryKey: ["/api/config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config");
+      return res.json();
+    }
+  });
+
+  const discordVisible = apiConfig ? apiConfig.discordInviteEnabled !== "false" : true;
+
   const handleDiscordClick = () => {
     discordClickMutation.mutate();
-    window.open(siteConfig.socials.discord, "_blank");
+    const url = (apiConfig?.discordInviteUrl ?? "").trim() || siteConfig.socials.discord;
+    window.open(url, "_blank");
   };
 
   useEffect(() => {
@@ -43,13 +54,16 @@ export default function About() {
         </a>
         <div className="flex items-center gap-4">
           <a href="/about" className="text-white text-sm font-bold transition-all border-b-2 border-primary pb-1">ABOUT</a>
-          <button
-            onClick={handleDiscordClick}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
-          >
-            <SiDiscord className="w-5 h-5" />
-            <span className="hidden sm:inline">JOIN DISCORD</span>
-          </button>
+          {discordVisible && (
+            <button
+              onClick={handleDiscordClick}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
+              data-testid="button-discord-nav-about"
+            >
+              <SiDiscord className="w-5 h-5" />
+              <span className="hidden sm:inline">JOIN DISCORD</span>
+            </button>
+          )}
         </div>
       </nav>
 

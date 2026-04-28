@@ -92,11 +92,6 @@ export default function Home() {
     apiRequest("POST", "/api/analytics/page-view");
   }, []);
 
-  const handleDiscordClick = () => {
-    discordClickMutation.mutate();
-    window.open(config.socials.discord, "_blank");
-  };
-
   const gamemodes = useMemo(() => getAvailableGamemodes(players), [players]);
 
   const allFilteredData = useMemo(() => {
@@ -160,6 +155,14 @@ export default function Home() {
     }
   });
 
+  const handleDiscordClick = () => {
+    discordClickMutation.mutate();
+    const url = (apiConfig?.discordInviteUrl ?? "").trim() || config.socials.discord;
+    window.open(url, "_blank");
+  };
+
+  const discordVisible = apiConfig ? apiConfig.discordInviteEnabled !== "false" : true;
+
   if (apiConfig?.maintenanceMode === "true") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-primary px-4">
@@ -170,15 +173,18 @@ export default function Home() {
             We are currently performing maintenance to improve your experience. 
             Please check back later!
           </p>
-          <div className="mt-8 pt-8 border-t border-white/5">
-             <button
-              onClick={handleDiscordClick}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all mx-auto shadow-lg shadow-[#5865F2]/20"
-            >
-              <SiDiscord className="w-5 h-5" />
-              JOIN DISCORD FOR UPDATES
-            </button>
-          </div>
+          {discordVisible && (
+            <div className="mt-8 pt-8 border-t border-white/5">
+              <button
+                onClick={handleDiscordClick}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all mx-auto shadow-lg shadow-[#5865F2]/20"
+                data-testid="button-discord-maintenance"
+              >
+                <SiDiscord className="w-5 h-5" />
+                JOIN DISCORD FOR UPDATES
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -284,13 +290,16 @@ export default function Home() {
         </a>
         <div className="flex items-center gap-4">
           <a href="/about" className="text-white/70 hover:text-white text-sm font-bold transition-all">ABOUT</a>
-          <button
-            onClick={handleDiscordClick}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
-          >
-            <SiDiscord className="w-5 h-5" />
-            <span className="hidden sm:inline">JOIN DISCORD</span>
-          </button>
+          {discordVisible && (
+            <button
+              onClick={handleDiscordClick}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#5865F2]/20"
+              data-testid="button-discord-nav"
+            >
+              <SiDiscord className="w-5 h-5" />
+              <span className="hidden sm:inline">JOIN DISCORD</span>
+            </button>
+          )}
         </div>
       </nav>
       

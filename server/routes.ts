@@ -45,6 +45,11 @@ export async function registerRoutes(
       maintenanceMode: data.maintenanceMode,
       bannerEnabled: data.bannerEnabled,
       bannerText: data.bannerText,
+      announcementEnabled: data.announcementEnabled,
+      announcementTitle: data.announcementTitle,
+      announcementMessage: data.announcementMessage,
+      discordInviteEnabled: data.discordInviteEnabled,
+      discordInviteUrl: data.discordInviteUrl,
     });
   });
 

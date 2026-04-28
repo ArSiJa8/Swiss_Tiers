@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, MousePointerClick, Lock, Settings, FileText, TrendingUp, Megaphone } from "lucide-react";
+import { Eye, MousePointerClick, Lock, Settings, FileText, TrendingUp, Megaphone, Bell } from "lucide-react";
+import { SiDiscord } from "react-icons/si";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -16,6 +17,9 @@ export default function Admin() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [aboutContent, setAboutContent] = useState("");
   const [bannerText, setBannerText] = useState("");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementMessage, setAnnouncementMessage] = useState("");
+  const [discordInviteUrl, setDiscordInviteUrl] = useState("");
   const { toast } = useToast();
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
@@ -63,6 +67,15 @@ export default function Admin() {
   useEffect(() => {
     if (config?.bannerText !== undefined) {
       setBannerText(config.bannerText);
+    }
+    if (config?.announcementTitle !== undefined) {
+      setAnnouncementTitle(config.announcementTitle);
+    }
+    if (config?.announcementMessage !== undefined) {
+      setAnnouncementMessage(config.announcementMessage);
+    }
+    if (config?.discordInviteUrl !== undefined) {
+      setDiscordInviteUrl(config.discordInviteUrl);
     }
   }, [config]);
 
@@ -272,6 +285,118 @@ export default function Admin() {
             >
               {updateConfigMutation.isPending ? "Speichern..." : "Banner Text Speichern"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Bell className="w-5 h-5 text-primary" />
+            <CardTitle>Ankündigung (Popup)</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex flex-col space-y-1">
+              <Label htmlFor="announcement-enabled">Ankündigung anzeigen</Label>
+              <span className="text-xs text-muted-foreground">
+                Zeigt beim ersten Besuch ein zentriertes Popup mit der Nachricht.
+              </span>
+            </div>
+            <Switch
+              id="announcement-enabled"
+              checked={config?.announcementEnabled === "true"}
+              onCheckedChange={(checked) =>
+                updateConfigMutation.mutate({ announcementEnabled: checked ? "true" : "false" })
+              }
+              data-testid="switch-announcement-enabled"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="announcement-title">Titel</Label>
+            <Input
+              id="announcement-title"
+              value={announcementTitle}
+              onChange={(e) => setAnnouncementTitle(e.target.value)}
+              placeholder="z.B. Neues Update verfügbar!"
+              data-testid="input-announcement-title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="announcement-message">Nachricht (Markdown unterstützt)</Label>
+            <Textarea
+              id="announcement-message"
+              value={announcementMessage}
+              onChange={(e) => setAnnouncementMessage(e.target.value)}
+              className="min-h-[140px] font-mono text-sm"
+              placeholder="Beschreibung der Ankündigung..."
+              data-testid="textarea-announcement-message"
+            />
+          </div>
+          <Button
+            onClick={() =>
+              updateConfigMutation.mutate({
+                announcementTitle,
+                announcementMessage,
+              })
+            }
+            disabled={updateConfigMutation.isPending}
+            className="w-full"
+            data-testid="button-save-announcement"
+          >
+            {updateConfigMutation.isPending ? "Speichern..." : "Ankündigung Speichern"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Hinweis: Bei jeder Änderung von Titel oder Nachricht wird das Popup für alle Besucher
+            erneut angezeigt.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <SiDiscord className="w-5 h-5 text-[#5865F2]" />
+            <CardTitle>Discord Invite</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex flex-col space-y-1">
+              <Label htmlFor="discord-enabled">Discord Button anzeigen</Label>
+              <span className="text-xs text-muted-foreground">
+                Blendet den "Join Discord"-Button auf der gesamten Seite ein oder aus.
+              </span>
+            </div>
+            <Switch
+              id="discord-enabled"
+              checked={config?.discordInviteEnabled !== "false"}
+              onCheckedChange={(checked) =>
+                updateConfigMutation.mutate({ discordInviteEnabled: checked ? "true" : "false" })
+              }
+              data-testid="switch-discord-enabled"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="discord-url">Custom Discord Invite URL</Label>
+            <div className="flex gap-2">
+              <Input
+                id="discord-url"
+                value={discordInviteUrl}
+                onChange={(e) => setDiscordInviteUrl(e.target.value)}
+                placeholder="https://discord.gg/..."
+                className="font-mono text-xs"
+                data-testid="input-discord-url"
+              />
+              <Button
+                onClick={() => updateConfigMutation.mutate({ discordInviteUrl })}
+                disabled={updateConfigMutation.isPending}
+                data-testid="button-save-discord-url"
+              >
+                {updateConfigMutation.isPending ? "..." : "Speichern"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
